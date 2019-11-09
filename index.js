@@ -19,6 +19,18 @@ const attributes =
 	[
 		'id', 'name', 'type',
 	]
+class j6tIdProvider {
+	constructor() {
+		this.counter = 0;
+	}
+	generate(id) {
+		if (!id || id.replace('__el__', '') < i)
+			return `__el__${this.counter++}`
+		
+		return id;
+	}
+}
+
 class _j6t {
 	constructor() {
 		this.scripts = [];
@@ -142,6 +154,8 @@ const j6t = new _j6t();
 class Component extends _j6t {
 	constructor(props) {
     	Object.assign(this, props);
+		
+		this.idProvider = new j6tIdProvider();
     }
 }
 

@@ -1,4 +1,4 @@
-import * as tags from './tags.js'
+import * as templateTags from './tags.js'
 
 const tags = [	'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
 				'p', 'b', 'strong', 'i', 'ins', 'pre', 'q', 'small', 'strike', 'font', 'sub', 'summary', 'sup', 'u', 
@@ -22,26 +22,340 @@ const attributes =
 class j6tIdProvider {
 	constructor() {
 		this.counter = 0;
+		this.idPrefix = '_el_';
 	}
 	generate(id) {
-		if (!id || id.replace('__el__', '') < i)
-			return `__el__${this.counter++}`
+		let doGenerate = false;
+		
+		if (typeof id != 'string') {
+			doGenerate = true;
+		} else {
+			id = id.trim();
+			
+			if (id.indexOf(' ') >= 0 || id.replace(this.idPrefix, '') < i) {
+				doGenerate = true;
+			}
+		}
+		
+		if (doGenerate)
+			return `${this.idPrefix}${this.counter++}`
 		
 		return id;
 	}
 }
 
 class _j6t {
-	constructor() {
-		this.scripts = [];
-		this.styles = [];
-		this.links = [];
-		this.html = [];
-		this.handlers = [];
-	}
 	get version() {
 		return '1.0'
 	}
+	render(component) {
+		let html = '';
+		
+		html += Component.links.map(x => `<link href="${x.src}" rel="stylesheet" type="text/css"/>\n`).join('');
+		html += Component.styles.map(x => `<style type="text/css"/>\n${x}</style>`).join('');
+		html += Component.html.join('\n');
+		
+		$(component.id).html(html);
+		
+		html += Component.scripts.map(x => `<script src="${x.src}"></script>\n`).join('');
+		
+		Component.handlers.map(h => {
+			if (h.id && $.isFunction(h.handler)) {
+				if (h.id[0] != '#') {
+					h.id = '#' + h.id;
+				}
+				
+				$(h.id).bind(h.event, h.handler)
+			}
+		});
+	}
+}
+
+const j6t = new _j6t();
+
+// --------------------------- Tags (start) -------------------------
+class baseTag {
+	constructor(props) {
+		Object.assign(this, props);
+		
+		this.tagName = '';
+		this.selfClose = false;
+	}
+	isValidAttribute(attr) {
+		return attributes.indexOf(attr) >= 0;
+	}
+	getAttributes() {
+		let result = [];
+		
+		$.each(this, prop => {
+			if (isValidAttribute(prop)) {
+				if (prop == 'id') {
+					result.splice(0, 0, prop);
+				} else {
+					result.push(prop);
+				}
+			}
+		});
+		
+		return result;
+	}
+	render() {
+		if (this.selfClose) {
+			return html`<${this.tagName} 
+								 ${getAttributes()}
+								 ${prop => html`${prop}{this[prop]}`}
+						/>`
+		} else {
+			return html`<${this.tagName} 
+								${getAttributes()}
+								${prop => html`${prop}{this[prop]}`}
+						>${this.text}!${this.html}</${this.tagName}>`
+		}
+	}
+}
+class ButtonTag extends baseTag {
+	constructor(props) {
+		Object.assign(this, props);
+		
+		this.tagName = 'button';
+	}
+}
+// --------------------------- Tags (start) -------------------------
+
+// --------------------------- Attributes (start) -------------------------
+class baseAttribute {
+	constructor(props) {
+		Object.assign(this, props);
+	}
+	validate() {
+		return this.attributeValue;
+	}
+	render() {
+		return validate() ? ` ${htmlencode(this.attributeName)}="${htmlencode(this.attributeValue)}"`: ''
+	}
+}
+class idAttribute extends baseAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'id';
+	}
+}
+class nameAttribute extends baseAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'name';
+	}
+}
+class titleAttribute extends baseAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'title';
+	}
+}
+class typeAttribute extends baseAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'type';
+	}
+}
+class srcAttribute extends baseAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'src';
+	}
+}
+class altAttribute extends baseAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'alt';
+	}
+}
+class hrefAttribute extends baseAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'href';
+	}
+}
+class valueAttribute extends baseAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'value';
+	}
+}
+class classAttribute extends baseAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'class';
+	}
+	render() {
+		let result = '';
+		
+		if (this.attributeValue) {
+			if ($.isArray(this.attributeValue)) {
+				result = ` class="${this.attributeValue.join(' ')}"`
+			} else {
+				result = ` class="${this.attributeValue.toString()}"`
+			}
+		}
+		
+		return result;
+	}
+}
+class styleAttribute extends baseAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'style';
+	}
+	render() {
+		let result = '';
+		
+		if (this.attributeValue) {
+			if ($.isArray(this.attributeValue)) {
+				result = ` style="${this.attributeValue.join(';\n')}"`
+			} else if ($.isPlainObject(this.attributeValue)){
+				let styles = [];
+				
+				$.each(this.attributeValue, function(styleName, styleValue) {
+					if ($.isArray(styleValue)) {
+						styleValue = styleValue.join(' ');
+					}
+					
+					styles.push(`${styleName}: ${styleValue};\n`);
+				});
+				
+				result = ` style="${this.attributeValue.join('\n')}"`
+			} else {
+				result = ` style="${this.attributeValue.toString()}"`
+			}
+		}
+		
+		return result;
+	}
+}
+
+// ========= event handler attributes =========
+
+class eventHandlerAttribute extends baseAttribute {
+	constructor(props) {
+		super(props);
+	}
+	render() {
+		if (this.owner && $.isFunction(this.attributeValue)) {
+			Component.parts.handlers.push({ id: this.owner, event: this.attributeName, handler: this.attributeValue })
+		}
+		
+		return '';
+	}
+}
+class onclickAttribute extends eventHandlerAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'onclick';
+	}
+}
+class ondbclickAttribute extends eventHandlerAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'ondbclick';
+	}
+}
+class onkeydownAttribute extends eventHandlerAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'onkeydown';
+	}
+}
+class onkeyupAttribute extends eventHandlerAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'onkeyup';
+	}
+}
+class onkeypressAttribute extends eventHandlerAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'onkeypress';
+	}
+}
+class onmousedownAttribute extends eventHandlerAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'onmousedown';
+	}
+}
+class onmouseupAttribute extends eventHandlerAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'onmouseup';
+	}
+}
+class onmousemoveAttribute extends eventHandlerAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'onmousemove';
+	}
+}
+class onloadAttribute extends eventHandlerAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'onload';
+	}
+}
+class onsubmitAttribute extends eventHandlerAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'onsubmit';
+	}
+}
+class onfocusAttribute extends eventHandlerAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'onfocus';
+	}
+}
+class onblurAttribute extends eventHandlerAttribute {
+	constructor(props) {
+		super(props);
+		
+		this.attributeName = 'onblur';
+	}
+}
+// --------------------------- Attributes ( end ) -------------------------
+class Component extends _j6t {
+	static page = {
+		scripts: [],
+		styles: [],
+		links: [],
+		html: [],
+		handlers: []
+	};
+	constructor(props) {
+    	Object.assign(this, props);
+		
+		this.idProvider = new j6tIdProvider();
+		this.id = this.idProvider.generate(this.id);
+    }
 	html(literals, ...expressions) {
 		let result = [];
 		let value;
@@ -100,7 +414,7 @@ class _j6t {
 							} else if ($.isArray(exp)){
 								arr = exp;
 							} else {
-								value = tags.htmlEncode(expressions[i]);
+								value = templateTags.htmlEncode(expressions[i]);
 							}
 						} else {
 							value = expressions[i];
@@ -134,29 +448,16 @@ class _j6t {
 		
 		return result;
 	}
-	render(node) {
-		let html = '';
-		
-		html += this.links.map(x => `<link href="${x.src}" rel="stylesheet" type="text/css"/>\n`).join('');
-		html += this.styles.map(x => `<style type="text/css"/>\n${x}</style>`).join('');
-		html += this.html.join('\n');
-		
-		$(node).html(html);
-		
-		html += this.scripts.map(x => `<script src="${x.src}"></script>\n`).join('');
-		
-		this.handlers.map(h => $(h.id).bind(h.event, h.handler));
+	render() {
+		return '';
 	}
-}
-
-const j6t = new _j6t();
-
-class Component extends _j6t {
-	constructor(props) {
-    	Object.assign(this, props);
+	refresh() {
+		let html = render();
 		
-		this.idProvider = new j6tIdProvider();
-    }
+		if (this.id) {
+			$(this.id).replaceWith(html);
+		}
+	}
 }
 
 export { j6t, Component }

@@ -19,6 +19,11 @@ const attributes =
 	[
 		'id', 'name', 'type',
 	]
+const events = [
+		'onmousedown', 'onmouseup', 'onmouseover', 'onmouseout', 'onmousemove', 'onmouseenter', 'onmouseleave',
+		'onclick', 'ondbclick', 'onkeydown', 'onkeyup', 'onkeypress', 'onscroll', 'onload', 'onunload', 'onresize',
+		'onchange', 'onselect', 'onfocus', 'onblur', 'onfocusin', 'onfocusout', 'onerror', 'onsubmit', 
+	]
 class j6tIdProvider {
 	constructor() {
 		this.counter = 0;
@@ -113,13 +118,6 @@ class baseTag {
 		}
 	}
 }
-class ButtonTag extends baseTag {
-	constructor(props) {
-		Object.assign(this, props);
-		
-		this.tagName = 'button';
-	}
-}
 // --------------------------- Tags (start) -------------------------
 
 // --------------------------- Attributes (start) -------------------------
@@ -134,62 +132,6 @@ class baseAttribute {
 		return validate() ? ` ${htmlencode(this.attributeName)}="${htmlencode(this.attributeValue)}"`: ''
 	}
 }
-class idAttribute extends baseAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'id';
-	}
-}
-class nameAttribute extends baseAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'name';
-	}
-}
-class titleAttribute extends baseAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'title';
-	}
-}
-class typeAttribute extends baseAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'type';
-	}
-}
-class srcAttribute extends baseAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'src';
-	}
-}
-class altAttribute extends baseAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'alt';
-	}
-}
-class hrefAttribute extends baseAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'href';
-	}
-}
-class valueAttribute extends baseAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'value';
-	}
-}
 class classAttribute extends baseAttribute {
 	constructor(props) {
 		super(props);
@@ -199,7 +141,7 @@ class classAttribute extends baseAttribute {
 	render() {
 		let result = '';
 		
-		if (this.attributeValue) {
+		if (validate()) {
 			if ($.isArray(this.attributeValue)) {
 				result = ` class="${this.attributeValue.join(' ')}"`
 			} else {
@@ -219,9 +161,9 @@ class styleAttribute extends baseAttribute {
 	render() {
 		let result = '';
 		
-		if (this.attributeValue) {
+		if (validate()) {
 			if ($.isArray(this.attributeValue)) {
-				result = ` style="${this.attributeValue.join(';\n')}"`
+				result = ` style="${this.attributeValue.join('; ')}"`
 			} else if ($.isPlainObject(this.attributeValue)){
 				let styles = [];
 				
@@ -230,10 +172,10 @@ class styleAttribute extends baseAttribute {
 						styleValue = styleValue.join(' ');
 					}
 					
-					styles.push(`${styleName}: ${styleValue};\n`);
+					styles.push(`${styleName}: ${styleValue};`);
 				});
 				
-				result = ` style="${this.attributeValue.join('\n')}"`
+				result = ` style="${this.attributeValue.join('')}"`
 			} else {
 				result = ` style="${this.attributeValue.toString()}"`
 			}
@@ -251,96 +193,13 @@ class eventHandlerAttribute extends baseAttribute {
 	}
 	render() {
 		if (this.owner && $.isFunction(this.attributeValue)) {
-			Component.parts.handlers.push({ id: this.owner, event: this.attributeName, handler: this.attributeValue })
+			Component.parts.handlers.push({ id: this.owner, event: this.eventName, handler: this.attributeValue })
 		}
 		
 		return '';
 	}
 }
-class onclickAttribute extends eventHandlerAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'onclick';
-	}
-}
-class ondbclickAttribute extends eventHandlerAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'ondbclick';
-	}
-}
-class onkeydownAttribute extends eventHandlerAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'onkeydown';
-	}
-}
-class onkeyupAttribute extends eventHandlerAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'onkeyup';
-	}
-}
-class onkeypressAttribute extends eventHandlerAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'onkeypress';
-	}
-}
-class onmousedownAttribute extends eventHandlerAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'onmousedown';
-	}
-}
-class onmouseupAttribute extends eventHandlerAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'onmouseup';
-	}
-}
-class onmousemoveAttribute extends eventHandlerAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'onmousemove';
-	}
-}
-class onloadAttribute extends eventHandlerAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'onload';
-	}
-}
-class onsubmitAttribute extends eventHandlerAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'onsubmit';
-	}
-}
-class onfocusAttribute extends eventHandlerAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'onfocus';
-	}
-}
-class onblurAttribute extends eventHandlerAttribute {
-	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'onblur';
-	}
-}
+
 // --------------------------- Attributes ( end ) -------------------------
 class Component extends _j6t {
 	static page = {

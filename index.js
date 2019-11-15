@@ -18,16 +18,29 @@ const tags = [	'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
 const attributes =
 	[
 		'id', 'name', 'type',
-	]
+	];
 const events = [
 		'onmousedown', 'onmouseup', 'onmouseover', 'onmouseout', 'onmousemove', 'onmouseenter', 'onmouseleave',
 		'onclick', 'ondbclick', 'onkeydown', 'onkeyup', 'onkeypress', 'onscroll', 'onload', 'onunload', 'onresize',
 		'onchange', 'onselect', 'onfocus', 'onblur', 'onfocusin', 'onfocusout', 'onerror', 'onsubmit', 
-	]
+	];
+const isEmpty = x => x == null || (typeof x == 'string' && x.trim() == '');
+
 class j6tIdProvider {
-	constructor() {
-		this.counter = 0;
-		this.idPrefix = '_el_';
+	constructor(props) {
+		let type = typeof props;
+		let _props = {};
+		
+		switch (type) {
+			case 'object': _props = props; break;
+			case 'number': _props = { counter: props }; break;
+			case 'string': _props = { idPrefix: props }; break;
+		};
+		
+		$.extend(this, {
+			counter: 0,
+			idPrefix: '_el_'
+		}, _props);
 	}
 	generate(id) {
 		let doGenerate = false;
@@ -37,15 +50,12 @@ class j6tIdProvider {
 		} else {
 			id = id.trim();
 			
-			if (id.indexOf(' ') >= 0 || id.replace(this.idPrefix, '') < i) {
+			if (id.indexOf(' ') >= 0 || id.replace(this.idPrefix, '') < this.counter) {
 				doGenerate = true;
 			}
 		}
 		
-		if (doGenerate)
-			return `${this.idPrefix}${this.counter++}`
-		
-		return id;
+		return doGenerate? `${this.idPrefix}${this.counter++}`: id;
 	}
 }
 
@@ -56,15 +66,15 @@ class _j6t {
 	render(component) {
 		let html = '';
 		
-		html += Component.links.map(x => `<link href="${x.src}" rel="stylesheet" type="text/css"/>\n`).join('');
-		html += Component.styles.map(x => `<style type="text/css"/>\n${x}</style>`).join('');
-		html += Component.html.join('\n');
+		html += component.links.map(x => `<link href="${x.src}" rel="stylesheet" type="text/css"/>\n`).join('');
+		html += component.styles.map(x => `<style type="text/css"/>\n${x}</style>`).join('');
+		html += component.html.join('\n');
 		
 		$(component.id).html(html);
 		
-		html += Component.scripts.map(x => `<script src="${x.src}"></script>\n`).join('');
+		html += component.scripts.map(x => `<script src="${x.src}"></script>\n`).join('');
 		
-		Component.handlers.map(h => {
+		component.handlers.map(h => {
 			if (h.id && $.isFunction(h.handler)) {
 				if (h.id[0] != '#') {
 					h.id = '#' + h.id;
@@ -79,23 +89,31 @@ class _j6t {
 const j6t = new _j6t();
 
 // --------------------------- Tags (start) -------------------------
-class baseTag {
+class baseTag extends Component {
 	constructor(props) {
-		Object.assign(this, props);
+		let type = typeof props;
+		let _props = {};
 		
-		this.tagName = '';
-		this.selfClose = false;
+		switch (type) {
+			case 'object': _props = props; break;
+			case 'string': _props = { tagName: props }; break;
+		};
+		
+		Object.assign(this, {
+			tagName: '',
+			selfClose: false
+		}, _props);
 	}
 	isValidAttribute(attr) {
-		return attributes.indexOf(attr) >= 0;
+		return typeof attr == 'string' && attr.trim() != '' && /[a-zA-Z]/.test(attr[0]);
 	}
 	getAttributes() {
 		let result = [];
 		
 		$.each(this, prop => {
 			if (isValidAttribute(prop)) {
-				if (prop == 'id') {
-					result.splice(0, 0, prop);
+				if (prop.toLowerCase() == 'id') {
+					result.splice(0, 0, 'id');
 				} else {
 					result.push(prop);
 				}
@@ -106,14 +124,12 @@ class baseTag {
 	}
 	render() {
 		if (this.selfClose) {
-			return html`<${this.tagName} 
-								 ${getAttributes()}
-								 ${prop => html`${prop}{this[prop]}`}
+			return html`<${this.tagName} ${getAttributes()}
+								 ${prop => html`${prop}@{this[prop]}`}
 						/>`
 		} else {
-			return html`<${this.tagName} 
-								${getAttributes()}
-								${prop => html`${prop}{this[prop]}`}
+			return html`<${this.tagName} ${getAttributes()}
+								${prop => html`${prop}@{this[prop]}`}
 						>${this.text}!${this.html}</${this.tagName}>`
 		}
 	}
@@ -123,10 +139,10 @@ class baseTag {
 // --------------------------- Attributes (start) -------------------------
 class baseAttribute {
 	constructor(props) {
-		Object.assign(this, props);
+		Object.assign(this, (typeof props == 'object' ? props: {}));
 	}
 	validate() {
-		return this.attributeValue;
+		return !isEmpty(this.attributeValue);
 	}
 	render() {
 		return validate() ? ` ${htmlencode(this.attributeName)}="${htmlencode(this.attributeValue)}"`: ''
@@ -134,9 +150,7 @@ class baseAttribute {
 }
 class classAttribute extends baseAttribute {
 	constructor(props) {
-		super(props);
-		
-		this.attributeName = 'class';
+		super($.extend(props, { attributeName: 'class' }));
 	}
 	render() {
 		let result = '';
@@ -154,30 +168,55 @@ class classAttribute extends baseAttribute {
 }
 class styleAttribute extends baseAttribute {
 	constructor(props) {
-		super(props);
+		super($.extend(props, { attributeName: 'style' }));
+	}
+	populate(styles) {
+		let result = [];
 		
-		this.attributeName = 'style';
+		if ($.isArray(styles)) {
+			styles.forEach(style => {
+				if (!isEmpty(style) {
+					if (typeof style == 'string') {
+						style = style.trim();
+						
+						result.push((style[style.length - 1] == ';' ? style.substr(0, style.length - 1): style));
+					} else {
+						if ($.isPlainObject(style)) {
+							let _styles = populate(style);
+							
+							if (!isEmpty(_styles)) {
+								result.push(_styles);
+							}
+						}
+					}
+				}
+			});
+		} else if (typeof styles == 'object'){
+			$.each(styles, function(name, value) {
+				if ($.isArray(value)) {
+					value = value.join(' ');
+				}
+				
+				result.push(`${name}: ${value}`);
+			});
+		} else {
+			if (!isEmpty(styles)) {
+				result.push(styles.toString());
+			}
+		}
+		
+		result = result.join(';');
+		
+		return result;
 	}
 	render() {
 		let result = '';
 		
 		if (validate()) {
-			if ($.isArray(this.attributeValue)) {
-				result = ` style="${this.attributeValue.join('; ')}"`
-			} else if ($.isPlainObject(this.attributeValue)){
-				let styles = [];
-				
-				$.each(this.attributeValue, function(styleName, styleValue) {
-					if ($.isArray(styleValue)) {
-						styleValue = styleValue.join(' ');
-					}
-					
-					styles.push(`${styleName}: ${styleValue};`);
-				});
-				
-				result = ` style="${this.attributeValue.join('')}"`
-			} else {
-				result = ` style="${this.attributeValue.toString()}"`
+			result = populate(this.attributeValue);
+			
+			if (!isEmpty(result)) {
+				result = ` style="${result}"`
 			}
 		}
 		
@@ -187,13 +226,13 @@ class styleAttribute extends baseAttribute {
 
 // ========= event handler attributes =========
 
-class eventHandlerAttribute extends baseAttribute {
+class eventHandlerAttribute {
 	constructor(props) {
-		super(props);
+		$.extend(this, props);
 	}
 	render() {
 		if (this.owner && $.isFunction(this.attributeValue)) {
-			Component.parts.handlers.push({ id: this.owner, event: this.eventName, handler: this.attributeValue })
+			this.handlers.push({ id: this.owner, event: this.eventName, handler: this.attributeValue })
 		}
 		
 		return '';
@@ -202,18 +241,25 @@ class eventHandlerAttribute extends baseAttribute {
 
 // --------------------------- Attributes ( end ) -------------------------
 class Component extends _j6t {
-	static page = {
-		scripts: [],
-		styles: [],
-		links: [],
-		html: [],
-		handlers: []
-	};
 	constructor(props) {
-    	Object.assign(this, props);
+    	Object.assign(this, {
+			idProvider: new j6tIdProvider()
+		}, (typeof props == 'object' ? props: {}));
 		
-		this.idProvider = new j6tIdProvider();
+		if (isEmpty(this.idProvider) || typeof this.idProvider != 'object' || !$.isFunction(this.idProvider.generate)) {
+			this.idProvider = new j6tIdProvider();
+		}
+		
 		this.id = this.idProvider.generate(this.id);
+		
+		this.styles = [];
+		this.scripts = [];
+		this.links = [];
+		this.handlers = [];
+		this.imports = [];
+		this.html = [];
+		this.events = [];
+		this.resources = [];
     }
 	html(literals, ...expressions) {
 		let result = [];

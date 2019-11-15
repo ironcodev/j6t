@@ -12,17 +12,162 @@ const tags = [	'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
 				'address', 'area', 'aside', 'base', 'basefont', 'bdi', 'blockquote', 'caption', 'center',
 				'cite', 'code', 'col', 'colgroup', 'data', 'datalist', 'del', 'details', 'dfn',
 				'dialog', 'dir', 'em', 'embed', 'applet', 'noframes', 'iframe', 'frame', 'frameset', 'hr', 'br', 
-				'main', 'map', 'mark', 'meter', 'map', 'noscript', 'script', 'style', 'object', 'output', 'param', 'progress', 
+				'main', 'map', 'mark', 'meter', 'map', 'noscript', 'script', 'object', 'output', 'param', 'progress', 
 				'rp', 'rt', 'ruby', 's', 'samp', 'source', 'svg', 'template', 'time', 'track', 'tt', 'var', 'wbr'
 			];
 const attributes =
 	[
-		'id', 'name', 'type',
+		'accept', 'accept-charset', 'accesskey', 'action', 'align', 'allow', 'alt',
+		'async', 'autocapitalize', 'autocomplete', 'autofocus', 'autoplay',
+		'background', 'bgcolor', 'border', 'buffered', 'challenge', 'charset',
+		'checked', 'cite', 'code', 'codebase', 'color', 'cols', 'colspan',
+		'content', 'contenteditable', 'contextmenu', 'controls', 'coords',
+		'crossorigin', 'csp', 'data', 'datetime', 'decoding', 'default',
+		'defer', 'dir', 'dirname', 'disabled', 'download', 'draggable',
+		'dropzone', 'enctype', 'enterkeyhint', 'for', 'form', 'formaction',
+		'formenctype', 'formmethod', 'formnovalidate', 'formtarget', 'headers',
+		'height', 'hidden', 'high', 'href', 'hreflang', 'http-equiv', 'icon', 'id', 
+		'importance', 'integrity', 'intrinsicsize', 'inputmode', 'ismap',
+		'itemprop', 'keytype', 'kind', 'label', 'lang', 'language', 'loading',
+		'list', 'loop', 'low', 'manifest', 'max', 'maxlength', 'minlength',
+		'media', 'method', 'min', 'multiple', 'muted', 'name', 'novalidate',
+		'open', 'optimum', 'pattern', 'ping', 'placeholder', 'poster', 'preload',
+		'radiogroup', 'readonly', 'referrerpolicy', 'rel', 'required', 'reversed',
+		'rows', 'rowspan', 'sandbox', 'scope', 'scoped', 'selected', 'shape',
+		'size', 'sizes', 'slot', 'span', 'spellcheck', 'src', 'srcdoc', 'srclang',
+		'srcset', 'start', 'step', 'summary', 'tabindex', 'target', 'title',
+		'translate', 'type', 'usemap', 'value', 'width', 'wrap'
 	];
+/*
+	attributes that there's a tag with their name in HTML:
+		summary: <table>
+		span: <col>, <colgroup>
+		form: input elements
+		label: <optgroup>, <option>, <track>
+		cite: <blockquote>, <del>, <ins>, <q>
+		code: <applet>
+		data: <object>
+		dir: 'ltr', 'rtl'
+	
+	when detecting a /xxx/${value} here is our rules:
+		1. is there a function/class named xxxTag ?
+				instantiate from the function/class. xxx is assumed case-sensitive.
+		2. is there a function/class named xxxAttribute ?
+				instantiate from the function/class. xxx is assumed case-sensitive.
+		3. is xxx == 'dir' ? instantiate from baseAttribute({ attributeName: 'dir'})
+		4. is xxx == 'style' ? instantiate from styleAttribute
+		5. is xxx == 'class' ? instantiate from classAttribute
+		6. is there an event named xxx? instantiate from eventHandlerAttribute({ event: xxx })
+		7. is there a tag named xxx? instantiate from baseTag({ tagName: xxx}). xxx is assumed case-insensitive.
+		8. instantiate from baseAttribute({ attributeName: xxx })
+		
+		in order to use xxx as an attribute where xxx is already found in tags (like summary, span, ...)
+		the user requires to use ^/xxx/${value} to explicitly indicate that he is using an attribute.
+			e.g.  <input ^form${'my-form'} />
+		
+		'dir' is an exception and is always assumed as an attribute. if the user decides
+		to use it a tag he should define a class named dirTag so that j6t uses it first.
+		
+		'style' is also an exception. we can't assume any priority between attribute and tag
+		since style is so common both as an attribute and a tag. we gave more priority to attribute
+		eventually and removed 'style' from tags list. instead defined a 'stylesTag' class
+		so that the user is able to use 'style' as a tag. the extra 's' in 'styles' is removed
+		internally in stylesTag class.
+		
+		
+	special characters:
+		#xxx${handler}		manual event handler (assume xxx as an event handler. use eventHandlerAttribute)
+		+xxx${handler}		attach event handler
+		-xxx${handler}		detach event handler
+		+#xxx${handler}		attach manual event handler
+		-#xxx${handler}		detach manual event handler
+		^xxx${value}		assume xxx as an attribute (use baseAttribute class)
+		!${value}			do not htmlencode value
+		${x}@xx${value}		dynamic command execution. assume x to complete xx as a command.
+							full command is xxx as if xxx${value} is specified. xx is optional.
+		*xxx${value}		reserved
+		$${value}			reserved
+		$xxx${value}		reserved
+		:xxx${value}		reserved
+		%${value}			urlDecode(value)
+		&${value}			urlEncode(value)
+		~${value}			Capitalize(value)
+		^${value}			toUpperCase(value)
+		v${value}			toLowerCase(value)
+		=${value}			reserved
+		
+*/
 const events = [
-		'onmousedown', 'onmouseup', 'onmouseover', 'onmouseout', 'onmousemove', 'onmouseenter', 'onmouseleave',
-		'onclick', 'ondbclick', 'onkeydown', 'onkeyup', 'onkeypress', 'onscroll', 'onload', 'onunload', 'onresize',
-		'onchange', 'onselect', 'onfocus', 'onblur', 'onfocusin', 'onfocusout', 'onerror', 'onsubmit', 
+		'onabort',
+		'onafterprint',
+		'onbeforeprint',
+		'onbeforeunload',
+		'onblur',
+		'oncanplay',
+		'oncanplaythrough',
+		'onchange',
+		'onclick',
+		'oncontextmenu',
+		'oncopy',
+		'oncuechange',
+		'oncut',
+		'ondblclick',
+		'ondrag',
+		'ondragend',
+		'ondragenter',
+		'ondragleave',
+		'ondragover',
+		'ondragstart',
+		'ondrop',
+		'ondurationchange',
+		'onemptied',
+		'onended',
+		'onerror',
+		'onfocus',
+		'onhashchange',
+		'oninput',
+		'oninvalid',
+		'onkeydown',
+		'onkeypress',
+		'onkeyup',
+		'onload',
+		'onloadeddata',
+		'onloadedmetadata',
+		'onloadstart',
+		'onmousedown',
+		'onmousemove',
+		'onmouseout',
+		'onmouseover',
+		'onmouseup',
+		'onmousewheel',
+		'onoffline',
+		'ononline',
+		'onpagehide',
+		'onpageshow',
+		'onpaste',
+		'onpause',
+		'onplay',
+		'onplaying',
+		'onpopstate',
+		'onprogress',
+		'onratechange',
+		'onreset',
+		'onresize',
+		'onscroll',
+		'onsearch',
+		'onseeked',
+		'onseeking',
+		'onselect',
+		'onstalled',
+		'onstorage',
+		'onsubmit',
+		'onsuspend',
+		'ontimeupdate',
+		'ontoggle',
+		'onunload',
+		'onvolumechange',
+		'onwaiting',
+		'onwheel'
 	];
 const isEmpty = x => x == null || (typeof x == 'string' && x.trim() == '');
 
@@ -104,8 +249,14 @@ class baseTag extends Component {
 			selfClose: false
 		}, _props);
 	}
+	isValidTag(tag) {
+		return /^[a-zA-Z][a-zA-Z0-9-_:]*$/.test(tag);
+	}
+	isValid() {
+		return isValidTag(this.tagName);
+	}
 	isValidAttribute(attr) {
-		return typeof attr == 'string' && attr.trim() != '' && /[a-zA-Z]/.test(attr[0]);
+		return typeof attr == 'string' && attr.trim() != '' && /^[a-zA-Z][a-zA-Z0-9-_]*$/.test(attr);
 	}
 	getAttributes() {
 		let result = [];
@@ -123,15 +274,29 @@ class baseTag extends Component {
 		return result;
 	}
 	render() {
-		if (this.selfClose) {
-			return html`<${this.tagName} ${getAttributes()}
-								 ${prop => html`${prop}@{this[prop]}`}
-						/>`
+		if (isValid()) {
+			if (this.selfClose) {
+				return html`<${this.tagName} ${getAttributes()}
+									 ${prop => html`${prop}@${this[prop]}`}
+							/>`
+			} else {
+				return html`<${this.tagName} ${getAttributes()}
+									${prop => html`${prop}@${this[prop]}`}
+							>${this.text}!${this.html}</${this.tagName}>`
+			}
 		} else {
-			return html`<${this.tagName} ${getAttributes()}
-								${prop => html`${prop}@{this[prop]}`}
-						>${this.text}!${this.html}</${this.tagName}>`
+			return '';
 		}
+	}
+}
+class stylesTag extends baseTag {
+	constructor(props) {
+		super(props);
+		
+		this.tagName = 'style';
+	}
+	isValid() {
+		return true;
 	}
 }
 // --------------------------- Tags (start) -------------------------
@@ -150,7 +315,11 @@ class baseAttribute {
 }
 class classAttribute extends baseAttribute {
 	constructor(props) {
-		super($.extend(props, { attributeName: 'class' }));
+		super($.extend(
+					{},
+					(typeof props == 'object' ? props: {}),
+					{ attributeName: 'class' }
+				));
 	}
 	render() {
 		let result = '';
@@ -168,7 +337,11 @@ class classAttribute extends baseAttribute {
 }
 class styleAttribute extends baseAttribute {
 	constructor(props) {
-		super($.extend(props, { attributeName: 'style' }));
+		super($.extend(
+					{},
+					(typeof props == 'object' ? props: {}),
+					{ attributeName: 'style' }
+				));
 	}
 	populate(styles) {
 		let result = [];
@@ -231,8 +404,37 @@ class eventHandlerAttribute {
 		$.extend(this, props);
 	}
 	render() {
-		if (this.owner && $.isFunction(this.attributeValue)) {
-			this.handlers.push({ id: this.owner, event: this.eventName, handler: this.attributeValue })
+		if (	   !isEmpty(this.eventName)
+				&& typeof this.eventName == 'string'
+				&& this.owner
+				&& this.owner.id
+				&& $.isFunction(this.attributeValue)) {
+			let _event = this.owner.events.find(x => x.name.toLowerCase() == this.eventName.toLowerCase());
+			
+			if (_event == undefined) {
+				if (this.bind != '-') {
+					this.owner.events.push({
+						id: this.owner.id,
+						name: this.eventName,
+						handlers: [ { handler: this.attributeValue, bind: '+', applied: false } ]
+					});
+				}
+			} else {
+				let handlerIndex = _event.handlers.findIndex(fn => this.attributeValue);
+				
+				if (_event.handlers.length == 0 && this.bind != '-') {
+					_event.handlers.push({ handler: this.attributeValue, bind: '+', applied: false });
+				} else if (handlerIndex < 0) {
+					if (this.bind == '+') {
+						_event.handlers.push({ handler: this.attributeValue, bind: '+', applied: false });
+					}
+				} else {
+					if (this.bind == '-') {
+						_event.handlers[handlerIndex].bind = '-';
+						_event.handlers[handlerIndex].applied = false;
+					}
+				}
+			}
 		}
 		
 		return '';
@@ -255,7 +457,6 @@ class Component extends _j6t {
 		this.styles = [];
 		this.scripts = [];
 		this.links = [];
-		this.handlers = [];
 		this.imports = [];
 		this.html = [];
 		this.events = [];
@@ -351,7 +552,7 @@ class Component extends _j6t {
 		
 		this.html.push(result);
 		
-		return result;
+		return result.join('\n');
 	}
 	render() {
 		return '';

@@ -15,8 +15,7 @@ const tags = [	'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
 				'main', 'map', 'mark', 'meter', 'map', 'noscript', 'script', 'object', 'output', 'param', 'progress', 
 				'rp', 'rt', 'ruby', 's', 'samp', 'source', 'svg', 'template', 'time', 'track', 'tt', 'var', 'wbr'
 			];
-const attributes =
-	[
+const attributes = [
 		'accept', 'accept-charset', 'accesskey', 'action', 'align', 'allow', 'alt',
 		'async', 'autocapitalize', 'autocomplete', 'autofocus', 'autoplay',
 		'background', 'bgcolor', 'border', 'buffered', 'challenge', 'charset',
@@ -211,22 +210,44 @@ class _j6t {
 	render(component) {
 		let html = '';
 		
-		html += component.links.map(x => `<link href="${x.src}" rel="stylesheet" type="text/css"/>\n`).join('');
+		if (typeof component == 'object'
+			&& component != null
+			&& $.isArray(component.styles)
+			&& $.isArray(component.events)
+			&& $.isArray(component.html)
+			&& typeof component.html == 'string')
+		html += Component.links.map(x => `<link href="${x.src}" rel="stylesheet" type="text/css"/>\n`).join('');
 		html += component.styles.map(x => `<style type="text/css"/>\n${x}</style>`).join('');
 		html += component.html.join('\n');
 		
-		$(component.id).html(html);
+		$(component.id).replaceWith(html);
 		
-		html += component.scripts.map(x => `<script src="${x.src}"></script>\n`).join('');
+		html += Component.scripts.map(x => `<script src="${x.src}"></script>\n`).join('');
 		
-		component.handlers.map(h => {
-			if (h.id && $.isFunction(h.handler)) {
-				if (h.id[0] != '#') {
-					h.id = '#' + h.id;
+		component.events.map(e => {
+			/*
+				{
+					target: '#xyz',			// selector e.g. '.xyz', 'p', ...
+					name: 'click', 			// dbclick, keydown, ...
+					handlers: [ {
+							handler: callback,
+							bind: '+',		// + (attach) or - (detach)
+							applied: false	// whether the binding ir applied or not
+						}, ... ]
 				}
-				
-				$(h.id).bind(h.event, h.handler)
-			}
+			*/
+			e.handlers.map(h => {
+				if (!h.applied) {
+					if (h.bind == '+') {
+						$(e.target).bind(e.name, h.handler);
+						h.applied = true;
+					} else if (h.bind == '-') {
+						$(e.target).unbind(e.name, h.handler);
+					}
+				}
+			});
+			
+			e.handlers = e.handlers.filter(h => h.bind == '+');
 		});
 	}
 }
@@ -406,15 +427,15 @@ class eventHandlerAttribute {
 	render() {
 		if (	   !isEmpty(this.eventName)
 				&& typeof this.eventName == 'string'
-				&& this.owner
-				&& this.owner.id
+				&& this.container
+				&& this.target
 				&& $.isFunction(this.attributeValue)) {
-			let _event = this.owner.events.find(x => x.name.toLowerCase() == this.eventName.toLowerCase());
+			let _event = this.container.events.find(x => x.name.toLowerCase() == this.eventName.toLowerCase());
 			
 			if (_event == undefined) {
 				if (this.bind != '-') {
-					this.owner.events.push({
-						id: this.owner.id,
+					this.container.events.push({
+						target: this.target,
 						name: this.eventName,
 						handlers: [ { handler: this.attributeValue, bind: '+', applied: false } ]
 					});
@@ -454,10 +475,8 @@ class Component extends _j6t {
 		
 		this.id = this.idProvider.generate(this.id);
 		
+		this.children = [];
 		this.styles = [];
-		this.scripts = [];
-		this.links = [];
-		this.imports = [];
 		this.html = [];
 		this.events = [];
 		this.resources = [];
@@ -565,5 +584,9 @@ class Component extends _j6t {
 		}
 	}
 }
+
+Component.links = [];
+Component.scripts = [];
+Component.imports = [];
 
 export { j6t, Component }

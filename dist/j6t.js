@@ -1,0 +1,3250 @@
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+"use strict";
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var elements = _interopRequireWildcard(require("./j6t.js"));
+
+var util = _interopRequireWildcard(require("./util.js"));
+
+var validation = _interopRequireWildcard(require("./validation.js"));
+
+var logging = _interopRequireWildcard(require("./logger.js"));
+
+var tags = _interopRequireWildcard(require("./tags.js"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+var j6t = new elements["default"]();
+Object.assign(j6t, elements, util, validation, logging, {
+  tags: tags
+});
+
+if (window) {
+  window.j6t = j6t;
+}
+
+var _default = j6t;
+exports["default"] = _default;
+
+},{"./j6t.js":2,"./logger.js":4,"./tags.js":5,"./util.js":6,"./validation.js":7}],2:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.bindElement = exports.styleAttribute = exports.dirAttribute = exports.idAttribute = exports.classAttribute = exports.deferAttribute = exports.asyncAttribute = exports.disabledAttribute = exports.checkedAttribute = exports.selectedAttribute = exports.BooleanAttribute = exports.BaseAttribute = exports.scriptElement = exports.scriptTag = exports.linkElement = exports.linkTag = exports.stylesTag = exports.BaseTag = exports.BaseElement = exports.DynamicComponent = exports.Component = exports.j6tNestedIdProvider = exports.j6tUniversalIdProvider = exports.j6tIdProvider = exports["default"] = void 0;
+
+var templateTags = _interopRequireWildcard(require("./tags.js"));
+
+var util = _interopRequireWildcard(require("./util.js"));
+
+var validation = _interopRequireWildcard(require("./validation.js"));
+
+var _logger = require("./logger.js");
+
+var _jquery = _interopRequireDefault(require("./jquery.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _templateObject4() {
+  var data = _taggedTemplateLiteral([" @", "", ""]);
+
+  _templateObject4 = function _templateObject4() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject3() {
+  var data = _taggedTemplateLiteral(["<!", "", "", ">\n\t\t\t\t\t\t\t\t", "!", "\n\t\t\t\t\t\t\t   </!", ">"]);
+
+  _templateObject3 = function _templateObject3() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject2() {
+  var data = _taggedTemplateLiteral([" @", "", ""]);
+
+  _templateObject2 = function _templateObject2() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject() {
+  var data = _taggedTemplateLiteral(["<!", "", "", "/>"]);
+
+  _templateObject = function _templateObject() {
+    return data;
+  };
+
+  return data;
+}
+
+function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+if (_jquery["default"] == null) {
+  throw 'jQuery not present';
+}
+
+var tags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'strong', 'i', 'ins', 'pre', 'q', 'small', 'strike', 'font', 'sub', 'summary', 'sup', 'u', 'div', 'span', 'img', 'figure', 'figcaption', 'picture', 'section', 'article', 'header', 'footer', 'table', 'thead', 'th', 'tr', 'td', 'tbody', 'tfoot', 'canvas', 'video', 'audio', 'form', 'button', 'input', 'textarea', 'fieldset', 'kbd', 'label', 'legend', 'select', 'optgroup', 'option', 'ul', 'li', 'dd', 'dl', 'dt', 'ol', 'a', 'abbr', 'acronym', 'link', 'address', 'area', 'aside', 'base', 'basefont', 'bdi', 'blockquote', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'data', 'datalist', 'del', 'details', 'dfn', 'dialog', 'dir', 'em', 'embed', 'applet', 'noframes', 'iframe', 'frame', 'frameset', 'hr', 'br', 'main', 'map', 'mark', 'meter', 'map', 'noscript', 'script', 'object', 'output', 'param', 'progress', 'rp', 'rt', 'ruby', 's', 'samp', 'source', 'svg', 'template', 'time', 'track', 'tt', 'var', 'wbr' // 'style' and 'dir'	these tags are ommited since we want them to have more priority as attributes <button style${...}>, <div dir${...}>
+// in order to force using 'style' or 'dir' as a tag, the user can leverage $style${...} or $dir${...} or define an explicit styleTag, dirTag class
+];
+var attributes = ['accept', 'accept-charset', 'accesskey', 'action', 'align', 'allow', 'alt', 'async', 'autocapitalize', 'autocomplete', 'autofocus', 'autoplay', 'background', 'bgcolor', 'border', 'buffered', 'challenge', 'charset', 'checked', 'cite', 'code', 'codebase', 'color', 'cols', 'colspan', 'content', 'contenteditable', 'contextmenu', 'controls', 'coords', 'crossorigin', 'csp', 'data', 'datetime', 'decoding', 'default', 'defer', 'dir', 'dirname', 'disabled', 'download', 'draggable', 'dropzone', 'enctype', 'enterkeyhint', 'for', 'form', 'formaction', 'formenctype', 'formmethod', 'formnovalidate', 'formtarget', 'headers', 'height', 'hidden', 'high', 'href', 'hreflang', 'http-equiv', 'icon', 'id', 'importance', 'integrity', 'intrinsicsize', 'inputmode', 'ismap', 'itemprop', 'keytype', 'kind', 'label', 'lang', 'language', 'loading', 'list', 'loop', 'low', 'manifest', 'max', 'maxlength', 'minlength', 'media', 'method', 'min', 'multiple', 'muted', 'name', 'novalidate', 'open', 'optimum', 'pattern', 'ping', 'placeholder', 'poster', 'preload', 'radiogroup', 'readonly', 'referrerpolicy', 'rel', 'required', 'reversed', 'rows', 'rowspan', 'sandbox', 'scope', 'scoped', 'selected', 'shape', 'size', 'sizes', 'slot', 'span', 'spellcheck', 'src', 'srcdoc', 'srclang', 'srcset', 'start', 'step', 'summary', 'tabindex', 'target', 'title', 'translate', 'type', 'usemap', 'value', 'width', 'wrap'];
+/*
+	attributes that there's a tag with their name in HTML:
+		summary: <table>
+		span: <col>, <colgroup>
+		form: input elements
+		label: <optgroup>, <option>, <track>
+		cite: <blockquote>, <del>, <ins>, <q>
+		code: <applet>
+		data: <object>
+		dir: 'ltr', 'rtl'
+	
+	when detecting a xxx${value} here is our rules:
+		if (xxx contains '-', ':' or '.', replace them with ''.
+		
+		0. is there a function/class named xxxClass or xxxElement && xxx has a render() method ?
+				instantiate from the function/class and pass value to its ctor. xxx is assumed case-sensitive.
+		1. is there a function/class named xxxTag ?
+				instantiate from the function/class and pass value to its ctor. xxx is assumed case-sensitive.
+		2. is there a function/class named xxxAttribute ?
+				instantiate from the function/class and pass value to its ctor. xxx is assumed case-sensitive.
+			
+		4. is xxx == 'dir' ? instantiate from BaseAttribute({ attributeName: 'dir'})
+		5. is xxx == 'style' ? instantiate from styleAttribute
+		6. is xxx == 'class' ? instantiate from classAttribute
+		7. is there an event named xxx in events array? instantiate from eventHandlerAttribute({ event: xxx })
+		8. is there a tag named xxx? instantiate from BaseTag($.extend({ tagName: xxx}, value)). xxx is assumed case-insensitive.
+		9. instantiate from BaseAttribute({ attributeName: xxx }). xxx is assumed case-insensitive.
+		
+		in order to use xxx as an attribute where xxx is already found in tags (like summary, span, ...)
+		the user requires to use ^xxx${value} to explicitly indicate that he is using an attribute.
+			e.g.  <input ^form${'my-form'} />
+		
+		'dir' is an exception and is always assumed as an attribute. if the user decides
+		to use it as a tag he should define a class named dirTag or dirClass or uses $dir${...}
+		
+		'style' is also an exception. we can't assume any priority between attribute and tag
+		since 'style' is so common both as an attribute and as a tag. we gave more priority to attribute
+		eventually and removed 'style' from tags list. instead we defined a 'stylesTag' class
+		so that the user is able to use 'styles' as a tag. the extra 's' in 'styles' is removed
+		internally in stylesTag class. there's also an option to use $style${args} to force 'style' as a tag
+		
+		
+	special characters:
+		#xxx${handler}		manual event handler (assume xxx as an event name that is not listed in events array. use eventHandlerAttribute)
+		^xxx${value}		assume xxx as an attribute (use BaseAttribute class)	e.g.	^style${args}
+		@${xxx}${value}		dynamic name execution. assume xxx as a name as if xxx${value} is specified.
+		$xxx${value}		assume xxx as a tag (use BaseTag class) 				e.g.	$asp-text${args}
+		
+		 ${x}	htmlEncode
+		!${x}	no html encode
+		%${x}	urlencode
+		&${x}	urldecode
+		#${x}	htmldeocde
+		~${x}	capitalize
+		=${x}	upper
+		-${x}	lower
+		$${x}	?
+		,${x}	?
+		;${x}	?
+		*${x}	command
+		+${x}	?
+		/${x}	reverse
+		|${x}	trim
+		.${x}	lastId	e.g. .${0}, .${''}
+		:${x}	?
+		>${x}	?
+		<${x}	?
+		
+		*b${}	dec2bin
+		*x${}	dec2hex
+		*o${}	dec2oct
+		
+		*bd${}	bin2dec		*bd${1101}	=> 13
+		*bx${}	bin2hex		*bx${1101}	=> c
+		*bo${}	bin2oct		*bx${1101}	=> 15
+		
+		*od${}	oct2dec		*od${15}	=> 13
+		*ox${}	oct2hex		*ox${15}	=> c
+		*ob${}	oct2bin		*ob${15}	=> 1101
+		
+		*xd${}	hex2dec		*xd${'1c'}	=> 29
+		*xo${}	hex2oct		*xo${'1c'}	=> 35
+		*xb${}	hex2bin		*xb${'1c'}	=> 11101
+*/
+
+/*
+	examples:
+	<a href${'google.com'}>
+		literals:
+			0: <a href
+			1: ''
+		expressions:
+			0: 'google.com'
+
+	<a ${'href'}@${'google.com'}
+		literals:
+			0: <a 
+			1: ''
+			2: ''
+		expressions:
+			0: 'href'
+			1: 'google.com'
+
+	test @${24}
+		literals:
+			0: test @
+			1: ''
+		expressions:
+			0: 24
+
+	test hello@${24}
+		literals:
+			0: test hello@
+			1: ''
+		expressions:
+			0: 24
+
+	name= ${'ali'} ${'omrani'}
+		literals:
+			0: name= 
+			1: ''
+			2: ''
+		expressions:
+			0: 'ali'
+			1: 'omrani'
+
+	test !${'<>'}
+		literals:
+			0: test !
+			1: ''
+		expressions:
+			0: <>
+
+	test hi!${'<>'}
+		literals:
+			0: test hi!
+			1: ''
+		expressions:
+			0: <>
+
+	test @${'cmd1'} ${'arg1'}
+		literals:
+			0: test @
+			1: ' '
+			2: ''
+		expressions:
+			0: 'cmd1'
+			1: 'arg1'
+
+	test @${'cmd1'}${'arg1'}
+		literals:
+			0: test @
+			1: ''
+			2: ''
+		expressions:
+			0: 'cmd1'
+			1: 'arg1'
+
+*/
+
+var events = ['onabort', 'onafterprint', 'onbeforeprint', 'onbeforeunload', 'onblur', 'oncanplay', 'oncanplaythrough', 'onchange', 'onclick', 'oncontextmenu', 'oncopy', 'oncuechange', 'oncut', 'ondblclick', 'ondrag', 'ondragend', 'ondragenter', 'ondragleave', 'ondragover', 'ondragstart', 'ondrop', 'ondurationchange', 'onemptied', 'onended', 'onerror', 'onfocus', 'onhashchange', 'oninput', 'oninvalid', 'onkeydown', 'onkeypress', 'onkeyup', 'onload', 'onloadeddata', 'onloadedmetadata', 'onloadstart', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onmousewheel', 'onoffline', 'ononline', 'onpagehide', 'onpageshow', 'onpaste', 'onpause', 'onplay', 'onplaying', 'onpopstate', 'onprogress', 'onratechange', 'onreset', 'onresize', 'onscroll', 'onsearch', 'onseeked', 'onseeking', 'onselect', 'onstalled', 'onstorage', 'onsubmit', 'onsuspend', 'ontimeupdate', 'ontoggle', 'onunload', 'onvolumechange', 'onwaiting', 'onwheel'];
+
+var cssAttribute = function cssAttribute(attr) {
+  var result = [];
+  var i = 0;
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = attr[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var ch = _step.value;
+
+      if (/[A-Z]/.test(ch)) {
+        if (i == 0) {
+          result.push(ch.toLowerCase());
+        } else {
+          result.push('-' + ch.toLowerCase());
+        }
+      } else {
+        result.push(ch);
+      }
+
+      i++;
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator["return"] != null) {
+        _iterator["return"]();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  return result.join('');
+};
+
+var j6tIdProvider =
+/*#__PURE__*/
+function () {
+  function j6tIdProvider() {
+    _classCallCheck(this, j6tIdProvider);
+  }
+
+  _createClass(j6tIdProvider, [{
+    key: "isValid",
+    value: function isValid(id) {
+      return validation.isValidDomId(id);
+    }
+  }, {
+    key: "generate",
+    value: function generate(id) {
+      util.NotImplementedException("".concat(this.constructor.name, ".generate()"));
+    }
+  }]);
+
+  return j6tIdProvider;
+}();
+
+exports.j6tIdProvider = j6tIdProvider;
+
+var j6tUniversalIdProvider =
+/*#__PURE__*/
+function (_j6tIdProvider) {
+  _inherits(j6tUniversalIdProvider, _j6tIdProvider);
+
+  function j6tUniversalIdProvider(props) {
+    var _this;
+
+    _classCallCheck(this, j6tUniversalIdProvider);
+
+    var type = _typeof(props);
+
+    var _props = {};
+
+    switch (type) {
+      case 'object':
+        _props = props;
+        break;
+
+      case 'number':
+        _props.counter = props;
+        break;
+
+      case 'string':
+        _props.idPrefix = props;
+        break;
+    }
+
+    ;
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(j6tUniversalIdProvider).call(this));
+
+    _jquery["default"].extend(_assertThisInitialized(_this), {
+      counter: 0,
+      idPrefix: '_el_'
+    }, _props);
+
+    return _this;
+  }
+
+  _createClass(j6tUniversalIdProvider, [{
+    key: "generate",
+    value: function generate(id) {
+      var doGenerate = false;
+
+      if (typeof id != 'string' || !isValid(id)) {
+        doGenerate = true;
+      } else {
+        id = id.trim();
+
+        if (id.indexOf(' ') >= 0 || id.replace(this.idPrefix, '') < this.counter) {
+          doGenerate = true;
+        }
+      }
+
+      return doGenerate ? "".concat(this.idPrefix).concat(this.counter++) : id;
+    }
+  }]);
+
+  return j6tUniversalIdProvider;
+}(j6tIdProvider);
+
+exports.j6tUniversalIdProvider = j6tUniversalIdProvider;
+
+var j6tNestedIdProvider =
+/*#__PURE__*/
+function (_j6tIdProvider2) {
+  _inherits(j6tNestedIdProvider, _j6tIdProvider2);
+
+  function j6tNestedIdProvider(props) {
+    var _this2;
+
+    _classCallCheck(this, j6tNestedIdProvider);
+
+    var type = _typeof(props);
+
+    var _props = {};
+
+    switch (type) {
+      case 'object':
+        _props = props;
+        break;
+
+      case 'number':
+        _props = {
+          counter: props
+        };
+        break;
+
+      case 'string':
+        _props = {
+          idPrefix: props
+        };
+        break;
+    }
+
+    ;
+    _this2 = _possibleConstructorReturn(this, _getPrototypeOf(j6tNestedIdProvider).call(this));
+
+    _jquery["default"].extend(_assertThisInitialized(_this2), {
+      counter: 0,
+      idPrefix: '_el_'
+    }, _props);
+
+    return _this2;
+  }
+
+  _createClass(j6tNestedIdProvider, [{
+    key: "generate",
+    value: function generate(id) {
+      var doGenerate = false;
+
+      if (typeof id != 'string' || !isValid(id)) {
+        doGenerate = true;
+      } else {
+        id = id.trim();
+
+        if (id.indexOf(' ') >= 0 || id.replace(this.idPrefix, '') < this.counter) {
+          doGenerate = true;
+        }
+      }
+
+      return doGenerate ? "".concat(this.idPrefix).concat(this.counter++) : id;
+    }
+  }]);
+
+  return j6tNestedIdProvider;
+}(j6tIdProvider);
+
+exports.j6tNestedIdProvider = j6tNestedIdProvider;
+
+var j6tRoot =
+/*#__PURE__*/
+function () {
+  function j6tRoot() {
+    _classCallCheck(this, j6tRoot);
+  }
+
+  _createClass(j6tRoot, [{
+    key: "render",
+    value: function render(component, target) {
+      if (component instanceof Component && (0, _jquery["default"])(target).length == 1) {
+        var content = [];
+        var html = '';
+        Component.links.forEach(function (link) {
+          if (!link.applied) {
+            html = link.element.render();
+            content.push(html);
+            link.applied = true;
+          }
+        });
+        html = component.render();
+        content.push(html);
+        Component.scripts.forEach(function (script) {
+          if (!script.applied) {
+            html = script.element.render();
+            content.push(html);
+            script.applied = true;
+          }
+        });
+        (0, _jquery["default"])(target).html(content.join('\n'));
+        component.bindEvents();
+      }
+    }
+  }, {
+    key: "version",
+    get: function get() {
+      return '1.0';
+    }
+  }]);
+
+  return j6tRoot;
+}();
+
+var Component =
+/*#__PURE__*/
+function () {
+  function Component(props) {
+    _classCallCheck(this, Component);
+
+    Object.assign(this, util.isSomeObject(props) ? props : {
+      arg: props
+    });
+
+    if (!(this.logger instanceof _logger.BaseLogger)) {
+      if (util.isSomeObject(this.parent) && this.parent.logger instanceof _logger.BaseLogger) {
+        this.logger = this.parent.logger;
+      } else {
+        this.logger = new _logger.NullLogger();
+      }
+    }
+
+    if (util.isEmpty(this.parent)) {
+      if (!this.isRoot) {
+        this.logger.warn("warning: no parent specified for this ".concat(this.constructor.name, " instance"));
+      }
+    }
+
+    var reservedIdProvider;
+
+    if (!util.isSomeObject(this.idProvider) && util.isSomeObject(this.parent) && util.isSomeObject(this.parent.idProvider)) {
+      this.idProvider = this.parent.idProvider;
+    }
+
+    if (!(this.idProvider instanceof j6tIdProvider)) {
+      this.logger.warn("warning: specified IdProvider is not a j6tIdProvider instance");
+      this.logger.warn("used j6tUniversalIdProvider as fallback");
+      reservedIdProvider = new j6tUniversalIdProvider();
+      this.idProvider = reservedIdProvider;
+    }
+
+    this.id = this.idProvider.generate(this.id);
+
+    if (!util.isSomeString(this.id) || this.id.indexOf(' ') >= 0) {
+      this.logger.warn("warning: current ".concat(this.constructor.name, "'s IdProvider couldn't generate a valid id"));
+      this.logger.warn("current ".concat(this.constructor.name, "'s id was generated by a j6tUniversalIdProvider as fallback"));
+
+      if (!util.isSomeObject(reservedIdProvider)) {
+        reservedIdProvider = new j6tUniversalIdProvider();
+      }
+
+      this.id = reservedIdProvider.generate(this.id);
+    }
+
+    this.lastId = '';
+    this.lastOwner = null;
+    this.children = [];
+    this.events = [];
+    /*	item structure:
+    {
+    target: '#xyz',			// selector e.g. '.xyz', 'p', ...
+    name: 'click', 			// dbclick, keydown, ...
+    handler: function
+    }
+    */
+
+    this.resources = [];
+  }
+
+  _createClass(Component, [{
+    key: "generateId",
+    value: function generateId(id) {
+      return this.idProvider.generate(id);
+    }
+  }, {
+    key: "exec",
+    value: function exec(command, value) {
+      var result = '';
+
+      switch (command) {
+        case 'b':
+          result = util.Dec2Bin(value);
+          break;
+
+        case 'x':
+          result = util.Dec2Hex(value);
+          break;
+
+        case 'o':
+          result = util.Dec2Oct(value);
+          break;
+
+        case 'bd':
+          result = util.Bin2Dec(value);
+          break;
+
+        case 'bx':
+          result = util.Bin2Hex(value);
+          break;
+
+        case 'bo':
+          result = util.Bin2Oct(value);
+          break;
+
+        case 'od':
+          result = util.Oct2Dec(value);
+          break;
+
+        case 'ox':
+          result = util.Oct2Hex(value);
+          break;
+
+        case 'ob':
+          result = util.Oct2Bin(value);
+          break;
+
+        case 'xd':
+          result = util.Hex2Dec(value);
+          break;
+
+        case 'xo':
+          result = util.Hex2Oct(value);
+          break;
+
+        case 'xb':
+          result = util.Hex2Bin(value);
+          break;
+      }
+
+      return result;
+    }
+  }, {
+    key: "validateText",
+    value: function validateText(text) {
+      return text;
+    }
+  }, {
+    key: "validateHtml",
+    value: function validateHtml(html) {
+      return html;
+    }
+  }, {
+    key: "parse",
+    value: function parse(literals) {
+      for (var _len = arguments.length, expressions = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        expressions[_key - 1] = arguments[_key];
+      }
+
+      var me = this;
+      var result = [];
+      var arr;
+
+      function _evalName(args) {
+        /*
+        	args: {
+        		name: 'name',
+        		arg: anything,
+        		directive: ''	// ^, #
+        	}
+        */
+        function _create(str, ignoreOwner) {
+          var obj;
+
+          try {
+            obj = eval(str);
+
+            if (!ignoreOwner) {
+              me.lastOwner = obj;
+            }
+          } catch (e) {
+            me.logger.danger(e);
+            me.logger.error("creating object ".concat(str, " failed!"));
+          }
+
+          return obj;
+        }
+
+        function _render(x) {
+          if (util.isSomeObject(x)) {
+            if (!(x instanceof BaseAttribute)) {
+              me.children.push(x);
+            }
+
+            if (util.isFunction(x.render)) {
+              var html = x.render();
+
+              if (html) {
+                result.push(html);
+              }
+            }
+          }
+        }
+
+        function _check(str) {
+          var result = false;
+
+          try {
+            result = eval(str);
+          } catch (_unused) {}
+
+          return result;
+        }
+
+        var obj;
+
+        do {
+          var _props2 = util.isSomeObject(args.arg) ? _objectSpread({}, args.arg) : {
+            arg: args.arg
+          };
+
+          if (args.name == 'bind') {
+            _props2.container = me;
+          } else {
+            _props2.parent = me;
+          }
+
+          if (_check("util.isFunction(".concat(args.name, "Element)"))) {
+            obj = _create("new ".concat(args.name, "Element(props)"));
+            break;
+          } // if (_check(`util.isFunction(j6t.${args.name}Element)`)) {
+          // obj = _create(`new j6t.${args.name}Element(props)`);
+          // break;
+          // }
+
+
+          if (_check("util.isFunction(".concat(args.name, "Tag)"))) {
+            obj = _create("new ".concat(args.name, "Tag(props)"));
+            break;
+          } // if (_check(`util.isFunction(j6t.${args.name}Tag)`)) {
+          // obj = _create(`new j6t.${args.name}Tag(props)`);
+          // break;
+          // }
+
+
+          if (_check("util.isFunction(".concat(args.name, "Attribute)"))) {
+            obj = _create("new ".concat(args.name, "Attribute({ attributeName: '").concat(args.name, "', attributeValue: args.arg, container: me })"), true);
+            break;
+          } // if (_check(`util.isFunction(j6t.${args.name}Attribute)`)) {
+          // obj = _create(`new j6t.${args.name}Attribute({ attributeValue: args.arg, container: me )`, true);
+          // break;
+          // }
+
+
+          if (events.indexOf(args.name) >= 0 || args.directive == '#') {
+            obj = new bindElement({
+              event: args.name,
+              container: me,
+              target: "#".concat(me.lastId),
+              handler: args.arg
+            });
+            break;
+          }
+
+          if (tags.indexOf(args.name) >= 0) {
+            if (args.directive == '^') {
+              obj = new BaseAttribute({
+                attributeName: args.name,
+                attributeValue: args.arg,
+                container: me
+              });
+            } else {
+              obj = new BaseTag(_objectSpread({
+                tagName: args.name
+              }, _props2));
+            }
+
+            break;
+          }
+
+          if (validation.isValidAttributeName(args.name)) {
+            if (args.directive == '$') {
+              obj = new BaseTag(_objectSpread({
+                tagName: args.name
+              }, _props2));
+            } else {
+              obj = new BaseAttribute({
+                attributeName: args.name,
+                attributeValue: args.arg,
+                container: me
+              });
+            }
+          } else {
+            result.push(args.directive + args.name);
+          }
+        } while (false);
+
+        _render(obj);
+      }
+
+      function _evaluateExpression(index) {
+        var execFunc = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+        var _result;
+
+        var _value = expressions[index];
+
+        if (util.isFunction(_value)) {
+          if (execFunc) {
+            try {
+              if (util.isArray(arr)) {
+                arr.forEach(function (a, i) {
+                  result.push(_value(a, i, me));
+                });
+                arr = null;
+                _result = '';
+              } else {
+                var _args = [me];
+                _result = _value.apply(null, _args);
+              }
+            } catch (err) {
+              me.logger.danger(err);
+              me.logger.fail("calling interpolation expression ".concat(index, " function failed."));
+            }
+          } else {
+            _result = _value;
+          }
+        } else if (util.isArray(_value)) {
+          arr = _value;
+        } else {
+          _result = _value;
+        }
+
+        return _result;
+      }
+
+      var i = 0;
+      me.children = [];
+
+      while (i < literals.length) {
+        var literal = literals[i];
+
+        if (i < literals.length - 1) {
+          var spaceIndex = -1;
+          var starIndex = -1;
+          var literalBeforeSpace = '';
+          var literalAfterSpace = '';
+          var firstCh = '';
+          var lastCh = '';
+          var name = '';
+          var command = '';
+          var value = void 0;
+          spaceIndex = literal ? util.lastIndexOf(literal, [' ', '\t', '\n']) : -1;
+          literalBeforeSpace = spaceIndex >= 0 ? literal.substr(0, spaceIndex + 1) : '';
+          literalAfterSpace = spaceIndex >= 0 ? literal.substr(spaceIndex + 1) : literal;
+          firstCh = literalAfterSpace ? literalAfterSpace[0] : '';
+          lastCh = literalAfterSpace ? literalAfterSpace[literalAfterSpace.length - 1] : '';
+          value = _evaluateExpression(i);
+
+          if (['#', '^', '$'].indexOf(firstCh) < 0) {
+            /* currently we only support #, ^ and $, but in the future we may
+            extend j6tRoot and support other charcaters to start a name command.
+            #xxx${args}	manual event		e.g. #ontimeout${myHandler}
+            ^xxx${args}	explicit attribute	e.g. ^label${'lblFoo'}
+            $xxx${args}	explicit tag		e.g. $style${'body { font: Tahoma }'}
+            @xxx${args}	reserved
+            +xxx${args}	reserved
+            -xxx${args}	reserved
+            :xxx${args}	reserved
+            /xxx${args}	reserved
+            &xxx${args}	reserved
+            !xxx${args}	reserved
+            %xxx${args}	reserved
+            */
+            firstCh = '';
+          }
+
+          if (lastCh == '@') {
+            if (i < expressions.length - 1 && literals[i + 1] == '') {
+              name = value;
+              value = _evaluateExpression(i + 1, false);
+            } else {
+              lastCh = '';
+            }
+          }
+
+          if (lastCh && ['@', '!', '&', '%', '=', '-', '~', '/', '|', '#', '.'].indexOf(lastCh) < 0) {
+            lastCh = '';
+          }
+
+          if (lastCh == '') {
+            name = firstCh ? literalAfterSpace.substr(1) : literalAfterSpace.substr(0);
+            starIndex = name ? name.lastIndexOf('*') : -1;
+            command = starIndex >= 0 ? name.substr(starIndex + 1) : '';
+          }
+
+          if (lastCh && literal.length > 1) {
+            result.push(literal.substr(0, literal.length - 1));
+          }
+
+          switch (lastCh) {
+            case '!':
+              result.push(value);
+              break;
+
+            case '.':
+              result.push(me.lastId);
+              break;
+
+            case '&':
+              result.push(util.urlDecodeToString(value));
+              break;
+
+            case '%':
+              result.push(util.urlEncodeToString(value));
+              break;
+
+            case '#':
+              result.push(util.htmlDecode(value));
+              break;
+
+            case '=':
+              result.push(util.upper(value));
+              break;
+
+            case '-':
+              result.push(util.lower(value));
+              break;
+
+            case '~':
+              result.push(util.capitalize(value));
+              break;
+
+            case '/':
+              result.push(util.reverseToString(value));
+              break;
+
+            case '|':
+              result.push(util.trim(value));
+              break;
+
+            case '@':
+              _evalName({
+                name: name,
+                arg: value,
+                directive: ''
+              });
+
+              i++; // this is necessary since we have read the next expression ahead of current expression
+
+              break;
+
+            default:
+              if (command) {
+                starIndex = literal.lastIndexOf('*');
+
+                if (starIndex > 0) {
+                  result.push(literal.substr(0, starIndex));
+                }
+
+                var execResult = exec(command, value);
+
+                if (execResult) {
+                  result.push(execResult);
+                }
+              } else if (util.isSomeString(name)) {
+                result.push(literalBeforeSpace);
+
+                _evalName({
+                  name: name,
+                  arg: value,
+                  directive: firstCh
+                });
+              } else {
+                if (literal) {
+                  result.push(literal);
+                }
+
+                result.push(util.htmlEncodeToString(value));
+              }
+
+              break;
+          }
+        } else {
+          result.push(literal);
+        }
+
+        i++;
+      }
+
+      return result.join('');
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      util.NotImplementedException("".concat(this.constructor.name, ".render()"));
+    }
+  }, {
+    key: "refresh",
+    value: function refresh() {
+      if ((0, _jquery["default"])(this.id).length == 1) {
+        var html = this.render();
+        (0, _jquery["default"])(this.id).replaceWith(html);
+        this.bindEvents();
+      }
+    }
+  }, {
+    key: "bindEvents",
+    value: function bindEvents() {
+      this.children.forEach(function (child) {
+        if (util.isFunction(child.bindEvents)) {
+          child.bindEvents();
+        }
+      });
+      this.events.forEach(function (e) {
+        if ((0, _jquery["default"])(e.target).length) {
+          (0, _jquery["default"])(e.target).bind(e.name, e.handler);
+        }
+      });
+    }
+  }]);
+
+  return Component;
+}();
+
+exports.Component = Component;
+Component.links = [];
+/*	structure
+{
+element: a linkTag instance
+applied: bool	whether this link was added to page or not
+}
+*/
+
+Component.scripts = [];
+/*	structure
+{
+element: an scriptTag instance
+applied: bool	whether this script was added to page or not
+}
+*/
+
+Component.imports = []; // --------------------------- Tags (start) -------------------------
+
+var DynamicComponent =
+/*#__PURE__*/
+function (_Component) {
+  _inherits(DynamicComponent, _Component);
+
+  function DynamicComponent(props) {
+    var _this3;
+
+    _classCallCheck(this, DynamicComponent);
+
+    _this3 = _possibleConstructorReturn(this, _getPrototypeOf(DynamicComponent).call(this, props));
+
+    if (!util.isFunction(_this3._render)) {
+      _this3._render = function () {
+        return '';
+      };
+    }
+
+    return _this3;
+  }
+
+  _createClass(DynamicComponent, [{
+    key: "render",
+    value: function render() {
+      return this._render(this);
+    }
+  }]);
+
+  return DynamicComponent;
+}(Component);
+
+exports.DynamicComponent = DynamicComponent;
+
+var BaseElement =
+/*#__PURE__*/
+function () {
+  function BaseElement(props) {
+    _classCallCheck(this, BaseElement);
+
+    Object.assign(this, util.isSomeObject(props) ? props : {});
+  }
+
+  _createClass(BaseElement, [{
+    key: "render",
+    value: function render() {
+      util.NotImplementedException("".concat(this.constructor.name, ".render()"));
+    }
+  }]);
+
+  return BaseElement;
+}();
+
+exports.BaseElement = BaseElement;
+
+var BaseTag =
+/*#__PURE__*/
+function (_Component2) {
+  _inherits(BaseTag, _Component2);
+
+  function BaseTag(props) {
+    var _this4;
+
+    _classCallCheck(this, BaseTag);
+
+    _this4 = _possibleConstructorReturn(this, _getPrototypeOf(BaseTag).call(this, props));
+    /* structure:
+    {
+    tagName: string,
+    selfClose: bool
+    }
+    */
+
+    if (!util.isSomeString(_this4.tagName) && util.isSomeString(props)) {
+      _this4.tagName = props;
+    }
+
+    if (!util.isBool(_this4.selfClose)) {
+      _this4.selfClose = false;
+    }
+
+    _this4.lastId = _this4.id;
+    _this4.lastOwner = _assertThisInitialized(_this4);
+
+    if (!util.isEmpty(_this4.arg)) {
+      _this4.html = _this4.arg;
+    }
+
+    return _this4;
+  }
+
+  _createClass(BaseTag, [{
+    key: "isValid",
+    value: function isValid() {
+      return validation.isValidTag(this.tagName);
+    }
+  }, {
+    key: "getExcludedAttributes",
+    value: function getExcludedAttributes() {
+      return ['tagname', 'selfclose', 'lastid', 'lastowner', 'children', 'events', 'resources', 'html', 'text', 'logger', 'parent', 'arg', 'idprovider'];
+    }
+  }, {
+    key: "getAttributes",
+    value: function getAttributes() {
+      var result = [];
+      var excludes = this.getExcludedAttributes();
+
+      _jquery["default"].each(this, function (prop) {
+        if (util.isSomeString(prop) && !util.isNumeric(prop)) {
+          var _prop = prop.toLowerCase();
+
+          if (validation.isValidAttributeName(prop) && excludes.indexOf(_prop) < 0) {
+            result.push(prop);
+          }
+        }
+      });
+
+      return result;
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      if (this.isValid()) {
+        var me = this;
+
+        if (this.selfClose) {
+          return me.parse(_templateObject(), me.tagName, me.getAttributes(), function (prop) {
+            return me.parse(_templateObject2(), prop, me[prop]);
+          });
+        } else {
+          return me.parse(_templateObject3(), me.tagName, me.getAttributes(), function (prop) {
+            return me.parse(_templateObject4(), prop, me[prop]);
+          }, me.validateText(me.text), me.validateHtml(me.html), me.tagName);
+        }
+      } else {
+        return '';
+      }
+    }
+  }]);
+
+  return BaseTag;
+}(Component);
+
+exports.BaseTag = BaseTag;
+
+var stylesTag =
+/*#__PURE__*/
+function (_BaseTag) {
+  _inherits(stylesTag, _BaseTag);
+
+  function stylesTag(props) {
+    _classCallCheck(this, stylesTag);
+
+    var _props = util.isSomeObject(props) ? props : {};
+
+    _props.tagName = 'style';
+
+    if (util.isArray(props)) {
+      _props.html = props.join('\n');
+    } else if (typeof props == 'string') {
+      _props.html = props;
+    } // $$$$$$$$$$$$$$ POTENTIAL XSS $$$$$$$$$$$$$
+    // _props.html must be validated to contain valid css style rules and nothing else.
+    // $$$$$$$$$$$$$$ POTENTIAL XSS $$$$$$$$$$$$$
+
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(stylesTag).call(this, _props));
+  }
+
+  return stylesTag;
+}(BaseTag);
+
+exports.stylesTag = stylesTag;
+
+var linkTag =
+/*#__PURE__*/
+function (_BaseTag2) {
+  _inherits(linkTag, _BaseTag2);
+
+  function linkTag(props) {
+    var _this5;
+
+    _classCallCheck(this, linkTag);
+
+    var _props = util.isSomeObject(props) ? props : {};
+
+    _props.tagName = 'link';
+    _props.selfClose = true;
+
+    if (util.isSomeString(props)) {
+      _props.href = props;
+    }
+
+    _this5 = _possibleConstructorReturn(this, _getPrototypeOf(linkTag).call(this, _props));
+    _this5.href = util.isSomeString(_this5.href) ? _this5.href : '';
+
+    if (util.left(_this5.href, 4).toLowerCase() == '.css') {
+      if (util.isEmpty(_this5.rel)) {
+        _this5.rel = 'stylesheet';
+      }
+
+      if (util.isEmpty(_this5.type)) {
+        _this5.type = 'text/css';
+      }
+    }
+
+    return _this5;
+  }
+
+  return linkTag;
+}(BaseTag);
+
+exports.linkTag = linkTag;
+
+var linkElement =
+/*#__PURE__*/
+function () {
+  function linkElement(props) {
+    _classCallCheck(this, linkElement);
+
+    if (util.isArray(props)) {
+      props.forEach(function (x) {
+        var element = new linkTag(x);
+        var href = element.href.toLowerCase();
+
+        if (util.isSomeString(href)) {
+          if (Component.links.find(function (e) {
+            return e.element.href.toLowerCase() == href;
+          }) == undefined) {
+            Component.links.push({
+              applied: false,
+              element: element
+            });
+          }
+        }
+      });
+    } else {
+      var element = new linkTag(props);
+      var href = element.href.toLowerCase();
+
+      if (util.isSomeString(href)) {
+        if (Component.links.find(function (e) {
+          return e.element.href.toLowerCase() == href;
+        }) == undefined) {
+          Component.links.push({
+            applied: false,
+            element: element
+          });
+        }
+      }
+    }
+  }
+
+  _createClass(linkElement, [{
+    key: "render",
+    value: function render() {
+      return '';
+    }
+  }]);
+
+  return linkElement;
+}();
+
+exports.linkElement = linkElement;
+
+var scriptTag =
+/*#__PURE__*/
+function (_BaseTag3) {
+  _inherits(scriptTag, _BaseTag3);
+
+  function scriptTag(props) {
+    var _this6;
+
+    _classCallCheck(this, scriptTag);
+
+    var _props = util.isSomeObject(props) ? props : {};
+
+    _props.tagName = 'script';
+
+    if (util.isSomeString(props)) {
+      _props.src = props;
+    }
+
+    _this6 = _possibleConstructorReturn(this, _getPrototypeOf(scriptTag).call(this, _props));
+    _this6.src = util.isSomeString(_this6.src) ? _this6.src : '';
+
+    if (util.left(_this6.src, 3).toLowerCase() == '.js') {
+      if (util.isEmpty(_this6.type)) {
+        _this6.type = 'text/javascript';
+      }
+    } else if (util.left(_this6.src, 5).toLowerCase() == '.json') {
+      if (util.isEmpty(_this6.type)) {
+        _this6.type = 'application/json';
+      }
+    }
+
+    return _this6;
+  }
+
+  return scriptTag;
+}(BaseTag);
+
+exports.scriptTag = scriptTag;
+
+var scriptElement =
+/*#__PURE__*/
+function () {
+  function scriptElement(props) {
+    _classCallCheck(this, scriptElement);
+
+    if (util.isArray(props)) {
+      props.forEach(function (x) {
+        var element = new scriptTag(x);
+        var src = element.src.toLowerCase();
+
+        if (util.isSomeString(src)) {
+          if (Component.scripts.find(function (e) {
+            return e.element.src.toLowerCase() == src;
+          }) == undefined) {
+            Component.scripts.push({
+              applied: false,
+              element: element
+            });
+          }
+        }
+      });
+    } else {
+      var element = new scriptTag(props);
+      var src = element.toLowerCase();
+
+      if (util.isSomeString(src)) {
+        if (Component.scripts.find(function (e) {
+          return e.element.src.toLowerCase() == src;
+        }) == undefined) {
+          Component.scripts.push({
+            applied: false,
+            element: element
+          });
+        }
+      }
+    }
+  }
+
+  _createClass(scriptElement, [{
+    key: "render",
+    value: function render() {
+      return '';
+    }
+  }]);
+
+  return scriptElement;
+}(); // --------------------------- Tags ( end ) -------------------------
+// --------------------------- Attributes (start) -------------------------
+
+
+exports.scriptElement = scriptElement;
+
+var BaseAttribute =
+/*#__PURE__*/
+function (_BaseElement) {
+  _inherits(BaseAttribute, _BaseElement);
+
+  function BaseAttribute(props) {
+    _classCallCheck(this, BaseAttribute);
+
+    var _props = util.isSomeObject(props) ? props : {
+      attributeName: '',
+      attributeValue: props
+    };
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(BaseAttribute).call(this, _props));
+  }
+
+  _createClass(BaseAttribute, [{
+    key: "validateValue",
+    value: function validateValue(value) {
+      return !util.isEmpty(value);
+    }
+  }, {
+    key: "encodeValue",
+    value: function encodeValue(value) {
+      return util.htmlEncodeToString(value);
+    }
+  }, {
+    key: "isValid",
+    value: function isValid() {
+      return validation.isValidAttributeName(this.attributeName) && (this.validateValue(this.attributeValue) || this.standAlone);
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var result = '';
+
+      if (this.isValid()) {
+        if (this.standAlone) {
+          if (this.attributeValue === true || !util.isEmpty(this.attributeValue) && this.attributeValue != false) {
+            result = " ".concat(this.attributeName);
+          }
+        } else {
+          if (!util.isEmpty(this.attributeValue)) {
+            result = " ".concat(this.attributeName, "=\"").concat(this.encodeValue(this.attributeValue), "\"");
+          }
+        }
+      }
+
+      return result;
+    }
+  }]);
+
+  return BaseAttribute;
+}(BaseElement);
+
+exports.BaseAttribute = BaseAttribute;
+
+var BooleanAttribute =
+/*#__PURE__*/
+function (_BaseAttribute) {
+  _inherits(BooleanAttribute, _BaseAttribute);
+
+  function BooleanAttribute(props) {
+    var _this7;
+
+    _classCallCheck(this, BooleanAttribute);
+
+    _this7 = _possibleConstructorReturn(this, _getPrototypeOf(BooleanAttribute).call(this, props));
+    _this7.standAlone = true;
+    return _this7;
+  }
+
+  return BooleanAttribute;
+}(BaseAttribute);
+
+exports.BooleanAttribute = BooleanAttribute;
+
+var selectedAttribute =
+/*#__PURE__*/
+function (_BooleanAttribute) {
+  _inherits(selectedAttribute, _BooleanAttribute);
+
+  function selectedAttribute(props) {
+    var _this8;
+
+    _classCallCheck(this, selectedAttribute);
+
+    _this8 = _possibleConstructorReturn(this, _getPrototypeOf(selectedAttribute).call(this, props));
+    _this8.attributeName = 'selected';
+    return _this8;
+  }
+
+  return selectedAttribute;
+}(BooleanAttribute);
+
+exports.selectedAttribute = selectedAttribute;
+
+var checkedAttribute =
+/*#__PURE__*/
+function (_BooleanAttribute2) {
+  _inherits(checkedAttribute, _BooleanAttribute2);
+
+  function checkedAttribute() {
+    var _this9;
+
+    _classCallCheck(this, checkedAttribute);
+
+    _this9 = _possibleConstructorReturn(this, _getPrototypeOf(checkedAttribute).call(this, props));
+    _this9.attributeName = 'checked';
+    return _this9;
+  }
+
+  return checkedAttribute;
+}(BooleanAttribute);
+
+exports.checkedAttribute = checkedAttribute;
+
+var disabledAttribute =
+/*#__PURE__*/
+function (_BooleanAttribute3) {
+  _inherits(disabledAttribute, _BooleanAttribute3);
+
+  function disabledAttribute() {
+    var _this10;
+
+    _classCallCheck(this, disabledAttribute);
+
+    _this10 = _possibleConstructorReturn(this, _getPrototypeOf(disabledAttribute).call(this, props));
+    _this10.attributeName = 'disabled';
+    return _this10;
+  }
+
+  return disabledAttribute;
+}(BooleanAttribute);
+
+exports.disabledAttribute = disabledAttribute;
+
+var asyncAttribute =
+/*#__PURE__*/
+function (_BooleanAttribute4) {
+  _inherits(asyncAttribute, _BooleanAttribute4);
+
+  function asyncAttribute() {
+    var _this11;
+
+    _classCallCheck(this, asyncAttribute);
+
+    _this11 = _possibleConstructorReturn(this, _getPrototypeOf(asyncAttribute).call(this, props));
+    _this11.attributeName = 'async';
+    return _this11;
+  }
+
+  return asyncAttribute;
+}(BooleanAttribute);
+
+exports.asyncAttribute = asyncAttribute;
+
+var deferAttribute =
+/*#__PURE__*/
+function (_BooleanAttribute5) {
+  _inherits(deferAttribute, _BooleanAttribute5);
+
+  function deferAttribute() {
+    var _this12;
+
+    _classCallCheck(this, deferAttribute);
+
+    _this12 = _possibleConstructorReturn(this, _getPrototypeOf(deferAttribute).call(this, props));
+    _this12.attributeName = 'defer';
+    return _this12;
+  }
+
+  return deferAttribute;
+}(BooleanAttribute);
+
+exports.deferAttribute = deferAttribute;
+
+var classAttribute =
+/*#__PURE__*/
+function (_BaseAttribute2) {
+  _inherits(classAttribute, _BaseAttribute2);
+
+  function classAttribute(props) {
+    var _this13;
+
+    _classCallCheck(this, classAttribute);
+
+    _this13 = _possibleConstructorReturn(this, _getPrototypeOf(classAttribute).call(this, props));
+
+    if (util.isArray(props)) {
+      _this13.attributeValue = props.join(' ');
+    }
+
+    _this13.attributeName = 'class';
+    return _this13;
+  }
+
+  return classAttribute;
+}(BaseAttribute);
+
+exports.classAttribute = classAttribute;
+
+var idAttribute =
+/*#__PURE__*/
+function (_BaseAttribute3) {
+  _inherits(idAttribute, _BaseAttribute3);
+
+  function idAttribute(props) {
+    var _this14;
+
+    _classCallCheck(this, idAttribute);
+
+    _this14 = _possibleConstructorReturn(this, _getPrototypeOf(idAttribute).call(this, props));
+    _this14.attributeName = 'id';
+
+    if (util.isEmpty(_this14.attributeValue)) {
+      _this14.attributeValue = '';
+    }
+
+    if (util.isSomeObject(_this14.parent)) {
+      _this14.parent.lastId = _this14.attributeValue = _this14.parent.idProvider.generate(_this14.attributeValue);
+    }
+
+    return _this14;
+  }
+
+  return idAttribute;
+}(BaseAttribute);
+
+exports.idAttribute = idAttribute;
+
+var dirAttribute =
+/*#__PURE__*/
+function (_BaseAttribute4) {
+  _inherits(dirAttribute, _BaseAttribute4);
+
+  function dirAttribute(props) {
+    var _this15;
+
+    _classCallCheck(this, dirAttribute);
+
+    _this15 = _possibleConstructorReturn(this, _getPrototypeOf(dirAttribute).call(this, props));
+    _this15.attributeName = 'dir';
+
+    if (['rtl', 'ltr'].indexOf(toStr(_this15.attributeValue)) < 0) {
+      _this15.attributeValue = '';
+    }
+
+    return _this15;
+  }
+
+  return dirAttribute;
+}(BaseAttribute);
+
+exports.dirAttribute = dirAttribute;
+
+var styleAttribute =
+/*#__PURE__*/
+function (_BaseAttribute5) {
+  _inherits(styleAttribute, _BaseAttribute5);
+
+  function styleAttribute(props) {
+    var _this16;
+
+    _classCallCheck(this, styleAttribute);
+
+    _this16 = _possibleConstructorReturn(this, _getPrototypeOf(styleAttribute).call(this, props));
+    _this16.attributeName = 'style';
+    return _this16;
+  }
+
+  _createClass(styleAttribute, [{
+    key: "populate",
+    value: function populate(styles) {
+      var _this17 = this;
+
+      var result = [];
+
+      if (util.isArray(styles)) {
+        styles.forEach(function (style) {
+          if (util.isSomeString(style)) {
+            style = style.trim();
+            result.push(style[style.length - 1] == ';' ? style.substr(0, style.length - 1) : style);
+          } else if (util.isSomeObject(style)) {
+            var _styles = _this17.populate(style);
+
+            if (util.isSomeString(_styles)) {
+              result.push(_styles);
+            }
+          }
+        });
+      } else if (util.isSomeObject(styles)) {
+        _jquery["default"].each(styles, function (name, value) {
+          var _value = '';
+
+          if (util.isArray(value)) {
+            _value = value.join(' ');
+          } else if (util.isFunction(value)) {
+            _value = value();
+          } else {
+            _value = toStr(value);
+          } // $$$$$$$$$$$$$$ POTENTIAL XSS $$$$$$$$$$$$$
+          // name and _value must be validated to be valid css name/value
+          // $$$$$$$$$$$$$$ POTENTIAL XSS $$$$$$$$$$$$$
+
+
+          result.push("".concat(cssAttribute(name), ": ").concat(_value));
+        });
+      } else {
+        if (util.isSomeString(styles)) {
+          result.push(styles);
+        }
+      }
+
+      result = result.join('; ').trim();
+      return result;
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var result = '';
+
+      if (this.isValid()) {
+        result = this.populate(this.attributeValue);
+
+        if (!util.isEmpty(result)) {
+          // $$$$$$$$$$$$$$ POTENTIAL XSS $$$$$$$$$$$$$
+          // result must be validated to contain valid css style rules and nothing else.
+          // $$$$$$$$$$$$$$ POTENTIAL XSS $$$$$$$$$$$$$
+          // we can't use htmlencode on rsult because css styles may contain
+          // characters like >, < which are valid in CSS but will be encoded by htmlencode()
+          // and produce faulty css.
+          result = " style=\"".concat(result, "\"");
+        }
+      }
+
+      return result;
+    }
+  }]);
+
+  return styleAttribute;
+}(BaseAttribute);
+
+exports.styleAttribute = styleAttribute;
+
+var bindElement =
+/*#__PURE__*/
+function (_BaseElement2) {
+  _inherits(bindElement, _BaseElement2);
+
+  function bindElement(props) {
+    var _this18;
+
+    _classCallCheck(this, bindElement);
+
+    _this18 = _possibleConstructorReturn(this, _getPrototypeOf(bindElement).call(this, props));
+    /* structure:
+    {
+    event: string,				// click, dbclick, ...
+    container: Component		// an object who is requesting binding this event
+    target: string (css query)	// a css query that targets elements to whom binding should be performed
+    handler: Function 			// event handler
+    }
+    */
+
+    _this18.event = (util.isSomeString(_this18.event) ? _this18.event : '').toLowerCase();
+
+    if (_this18.event.length >= 2 && _this18.event.substr(0, 2) == 'on') {
+      _this18.event = _this18.event.substr(2);
+    }
+
+    return _this18;
+  }
+
+  _createClass(bindElement, [{
+    key: "render",
+    value: function render() {
+      var _this19 = this;
+
+      if (validation.isValidEvent(this.event) && util.isSomeString(this.target) && util.isFunction(this.handler) && util.isSomeObject(this.container) && util.isArray(this.container.events)) {
+        var e = this.container.events.find(function (e) {
+          return e.name == _this19.event && e.target == _this19.target && e.handler == _this19.handler;
+        });
+
+        if (e == undefined) {
+          this.container.events.push({
+            target: this.target,
+            name: this.event,
+            handler: this.handler
+          });
+        }
+      }
+
+      return '';
+    }
+  }]);
+
+  return bindElement;
+}(BaseElement); // --------------------------- Attributes ( end ) -------------------------
+
+
+exports.bindElement = bindElement;
+var _default = j6tRoot;
+exports["default"] = _default;
+
+},{"./jquery.js":3,"./logger.js":4,"./tags.js":5,"./util.js":6,"./validation.js":7}],3:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var _jQuery = window && window.jQuery;
+
+var _default = _jQuery;
+exports["default"] = _default;
+
+},{}],4:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.DomLogger = exports.StringLogger = exports.StoreLogger = exports.ConsoleLogger = exports.NullLogger = exports.BaseLogger = exports.logFilter = exports.logType = void 0;
+
+var _jquery = _interopRequireDefault(require("./jquery.js"));
+
+var util = _interopRequireWildcard(require("./util.js"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var logType = {
+  info: 'info',
+  //	normal message
+  primary: 'primary',
+  // important log
+  secondary: 'secondary',
+  // log of secondary importance
+  alert: 'alert',
+  // something detected without the user's hands in it.
+  cancel: 'cancel',
+  // user asked to cancel the operation
+  success: 'success',
+  // informing that something succeeded
+  suggest: 'suggest',
+  // give a suggestion to recover or resolve an issue
+  abort: 'abort',
+  // operation aborted without the user request to cancel it
+  // it happened in the midth of the operation due to errors
+  trace: 'trace',
+  //	log a message with trace line number
+  debug: 'debug',
+  //	debug message or information, e.g. local variables or parameters
+  warning: 'warning',
+  //	something detected with user's hands in it
+  //	a function called which expected 3 args but received 2 args.
+  //		it is not an error though since the function can handle it
+  //		and use a default, it's just a warning sign.
+  fatal: 'fatal',
+  // reporting a high unexpected exception or situation where no further operation can be done
+  // like when no window or document object found
+  danger: 'danger',
+  // reporting exceptions
+  fail: 'fail',
+  // reporting after exceptions: we wanted to do something but an exception raised
+  error: 'error' //	a logical error that code detected.
+  //   	e.g. a class expected a callback function to be passed to its constructor
+  //		but the given argument is not a function
+
+};
+exports.logType = logType;
+var logFilter = {
+  none: [],
+  success: ['success', 'error'],
+  // success, error
+  // 		we just want to see whether system is healthy or not
+  info: ['info', 'primary', 'secondary', 'alert', 'cancel', 'success', 'suggest', 'abort'],
+  //		we want to see the details of the log to see how the system operates and works
+  debug: ['primary', 'alert', 'abort', 'cancel', 'fatal', 'danger', 'fail', 'error', 'trace', 'suggest'],
+  // 		we wan to debug some erro or issue, only important logs are minded for us
+  warning: ['warning', 'alert', 'suggest'],
+  //		our focus is on warnings, alerts, suggestions
+  error: ['fatal', 'danger', 'fail', 'error', 'suggest'],
+  //		we want to see only the errors to go right to the issues
+  all: ['info', 'primary', 'secondary', 'alert', 'cancel', 'success', 'suggest', 'abort', 'trace', 'debug', 'warning', 'fatal', 'danger', 'fail', 'error']
+};
+exports.logFilter = logFilter;
+
+var BaseLogger =
+/*#__PURE__*/
+function () {
+  function BaseLogger(props) {
+    _classCallCheck(this, BaseLogger);
+
+    Object.assign(this, props);
+
+    if (!util.isArray(this.filter)) {
+      this.filter = logFilter.none;
+    }
+
+    this.setting = util.deepAssign({
+      'info': {
+        color: 'black',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'primary': {
+        color: 'blue',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'secondary': {
+        color: 'gray',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'alert': {
+        color: 'darkorange',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'cancel': {
+        color: 'purple',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'success': {
+        color: 'green',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'suggest': {
+        color: 'magenta',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'abort': {
+        color: 'indigo',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'trace': {
+        color: 'darkcyan',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'debug': {
+        color: 'navy',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'warning': {
+        color: 'brown',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'fatal': {
+        color: 'darkred',
+        bold: true,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'danger': {
+        color: 'red',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'fail': {
+        color: 'maroon',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      },
+      'error': {
+        color: 'violet',
+        bold: false,
+        size: null,
+        italic: false,
+        blink: false
+      }
+    }, props && props.setting);
+  }
+
+  _createClass(BaseLogger, [{
+    key: "getStyle",
+    value: function getStyle(type) {
+      var _setting = this.setting[type];
+      var result = [];
+
+      if (_setting) {
+        if (_setting.color) {
+          result.push("color: ".concat(_setting.color));
+        }
+
+        if (_setting.bold) {
+          result.push("font-weight: bold");
+        }
+
+        if (_setting.italic) {
+          result.push("font-style: italic");
+        }
+
+        if (_setting.size) {
+          result.push("font-size: ".concat(_setting.size));
+        }
+      }
+
+      return result.join(';');
+    }
+  }, {
+    key: "_logInternal",
+    value: function _logInternal(log) {
+      util.NotImplementedException("".concat(this.constructor.name, "._logInternal()"));
+    }
+  }, {
+    key: "log",
+    value: function log() {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      this.logAs.apply(this, ['info'].concat(args));
+    }
+  }, {
+    key: "logAs",
+    value: function logAs(type) {
+      var _this = this;
+
+      for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        args[_key2 - 1] = arguments[_key2];
+      }
+
+      if (args.length) {
+        if (util.isEmpty(type) || logFilter.all.indexOf(type) < 0) {
+          type = logType.info;
+        }
+
+        if (this.filter.indexOf(type) >= 0) {
+          args.forEach(function (data) {
+            _this._logInternal({
+              type: type,
+              data: data,
+              date: new Date()
+            });
+          });
+        }
+
+        if (util.isSomeObject(this.next) && this.next instanceof BaseLogger) {
+          var _this$next;
+
+          (_this$next = this.next).logAs.apply(_this$next, [type].concat(args));
+        }
+      }
+    }
+  }, {
+    key: "info",
+    value: function info() {
+      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
+      }
+
+      this.logAs.apply(this, ['info'].concat(args));
+    }
+  }, {
+    key: "primary",
+    value: function primary() {
+      for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+        args[_key4] = arguments[_key4];
+      }
+
+      this.logAs.apply(this, ['primary'].concat(args));
+    }
+  }, {
+    key: "secondary",
+    value: function secondary() {
+      for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+        args[_key5] = arguments[_key5];
+      }
+
+      this.logAs.apply(this, ['secondary'].concat(args));
+    }
+  }, {
+    key: "alert",
+    value: function alert() {
+      for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+        args[_key6] = arguments[_key6];
+      }
+
+      this.logAs.apply(this, ['alert'].concat(args));
+    }
+  }, {
+    key: "cancel",
+    value: function cancel() {
+      for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+        args[_key7] = arguments[_key7];
+      }
+
+      this.logAs.apply(this, ['cancel'].concat(args));
+    }
+  }, {
+    key: "success",
+    value: function success() {
+      for (var _len8 = arguments.length, args = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+        args[_key8] = arguments[_key8];
+      }
+
+      this.logAs.apply(this, ['success'].concat(args));
+    }
+  }, {
+    key: "suggest",
+    value: function suggest() {
+      for (var _len9 = arguments.length, args = new Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
+        args[_key9] = arguments[_key9];
+      }
+
+      this.logAs.apply(this, ['suggest'].concat(args));
+    }
+  }, {
+    key: "abort",
+    value: function abort() {
+      for (var _len10 = arguments.length, args = new Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
+        args[_key10] = arguments[_key10];
+      }
+
+      this.logAs.apply(this, ['abort'].concat(args));
+    }
+  }, {
+    key: "trace",
+    value: function trace() {
+      for (var _len11 = arguments.length, args = new Array(_len11), _key11 = 0; _key11 < _len11; _key11++) {
+        args[_key11] = arguments[_key11];
+      }
+
+      this.logAs.apply(this, ['trace'].concat(args));
+    }
+  }, {
+    key: "debug",
+    value: function debug() {
+      for (var _len12 = arguments.length, args = new Array(_len12), _key12 = 0; _key12 < _len12; _key12++) {
+        args[_key12] = arguments[_key12];
+      }
+
+      this.logAs.apply(this, ['debug'].concat(args));
+    }
+  }, {
+    key: "warn",
+    value: function warn() {
+      for (var _len13 = arguments.length, args = new Array(_len13), _key13 = 0; _key13 < _len13; _key13++) {
+        args[_key13] = arguments[_key13];
+      }
+
+      this.logAs.apply(this, ['warning'].concat(args));
+    }
+  }, {
+    key: "fatal",
+    value: function fatal() {
+      for (var _len14 = arguments.length, args = new Array(_len14), _key14 = 0; _key14 < _len14; _key14++) {
+        args[_key14] = arguments[_key14];
+      }
+
+      this.logAs.apply(this, ['fatal'].concat(args));
+    }
+  }, {
+    key: "danger",
+    value: function danger() {
+      for (var _len15 = arguments.length, args = new Array(_len15), _key15 = 0; _key15 < _len15; _key15++) {
+        args[_key15] = arguments[_key15];
+      }
+
+      this.logAs.apply(this, ['danger'].concat(args));
+    }
+  }, {
+    key: "fail",
+    value: function fail() {
+      for (var _len16 = arguments.length, args = new Array(_len16), _key16 = 0; _key16 < _len16; _key16++) {
+        args[_key16] = arguments[_key16];
+      }
+
+      this.logAs.apply(this, ['fail'].concat(args));
+    }
+  }, {
+    key: "error",
+    value: function error() {
+      for (var _len17 = arguments.length, args = new Array(_len17), _key17 = 0; _key17 < _len17; _key17++) {
+        args[_key17] = arguments[_key17];
+      }
+
+      this.logAs.apply(this, ['error'].concat(args));
+    }
+  }, {
+    key: "isValidLog",
+    value: function isValidLog(log) {
+      return util.isSomeObject(log) && util.isSomeString(log.type) && util.isDate(log.date);
+    }
+  }]);
+
+  return BaseLogger;
+}();
+
+exports.BaseLogger = BaseLogger;
+
+var NullLogger =
+/*#__PURE__*/
+function (_BaseLogger) {
+  _inherits(NullLogger, _BaseLogger);
+
+  function NullLogger(props) {
+    _classCallCheck(this, NullLogger);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(NullLogger).call(this, props));
+  }
+
+  _createClass(NullLogger, [{
+    key: "_logInternal",
+    value: function _logInternal(log) {}
+  }]);
+
+  return NullLogger;
+}(BaseLogger);
+
+exports.NullLogger = NullLogger;
+
+var ConsoleLogger =
+/*#__PURE__*/
+function (_BaseLogger2) {
+  _inherits(ConsoleLogger, _BaseLogger2);
+
+  function ConsoleLogger(props) {
+    _classCallCheck(this, ConsoleLogger);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(ConsoleLogger).call(this, props));
+  }
+
+  _createClass(ConsoleLogger, [{
+    key: "_logInternal",
+    value: function _logInternal(log) {
+      if (this.isValidLog(log)) {
+        var _style = this.getStyle(log.type);
+
+        if (_style) {
+          console.log("%c".concat(log.data), _style);
+        } else {
+          console.log(log.data);
+        }
+      }
+    }
+  }]);
+
+  return ConsoleLogger;
+}(BaseLogger);
+
+exports.ConsoleLogger = ConsoleLogger;
+
+var StoreLogger =
+/*#__PURE__*/
+function (_BaseLogger3) {
+  _inherits(StoreLogger, _BaseLogger3);
+
+  function StoreLogger(props) {
+    var _this2;
+
+    _classCallCheck(this, StoreLogger);
+
+    _this2 = _possibleConstructorReturn(this, _getPrototypeOf(StoreLogger).call(this, props));
+
+    if (!util.isArray(_this2.store)) {
+      _this2.store = [];
+    }
+
+    return _this2;
+  }
+
+  _createClass(StoreLogger, [{
+    key: "_logInternal",
+    value: function _logInternal(log) {
+      if (this.isValidLog(log)) {
+        this.store.push(log);
+      }
+    }
+  }]);
+
+  return StoreLogger;
+}(BaseLogger);
+
+exports.StoreLogger = StoreLogger;
+
+var StringLogger =
+/*#__PURE__*/
+function (_StoreLogger) {
+  _inherits(StringLogger, _StoreLogger);
+
+  function StringLogger(props) {
+    var _this3;
+
+    _classCallCheck(this, StringLogger);
+
+    _this3 = _possibleConstructorReturn(this, _getPrototypeOf(StringLogger).call(this, props));
+
+    if (!util.isSomeString(_this3.logFormat)) {
+      _this3.logFormat = '%date: %data\n';
+    }
+
+    if (!util.isSomeString(_this3.replacer)) {
+      _this3.replacer = '\t';
+    }
+
+    if (!util.isSomeString(_this3.space)) {
+      _this3.space = '   ';
+    }
+
+    return _this3;
+  }
+
+  _createClass(StringLogger, [{
+    key: "format",
+    value: function format(log) {
+      return this.isValidLog(log) ? this.logFormat.replace(/%date/g, log.date).replace(/%type/g, log.type).replace(/%data/g, JSON.stringify(log.data, this.replacer, this.space)) : '';
+    }
+  }, {
+    key: "stringify",
+    value: function stringify() {
+      var _this4 = this;
+
+      return this.store.map(function (log) {
+        return _this4.format(log);
+      }).join('');
+    }
+  }]);
+
+  return StringLogger;
+}(StoreLogger);
+
+exports.StringLogger = StringLogger;
+
+var DomLogger =
+/*#__PURE__*/
+function (_BaseLogger4) {
+  _inherits(DomLogger, _BaseLogger4);
+
+  function DomLogger(props) {
+    var _this5;
+
+    _classCallCheck(this, DomLogger);
+
+    _this5 = _possibleConstructorReturn(this, _getPrototypeOf(DomLogger).call(this, props));
+
+    if (!util.isSomeString(_this5.target)) {
+      _this5.target = '#logs';
+    }
+
+    if (!util.isSomeString(_this5.lineBreak)) {
+      _this5.lineBreak = '<br/>\n';
+    }
+
+    if (!util.isSomeString(_this5.replacer)) {
+      _this5.replacer = '\t';
+    }
+
+    if (!util.isSomeString(_this5.space)) {
+      _this5.space = '   ';
+    }
+
+    return _this5;
+  }
+
+  _createClass(DomLogger, [{
+    key: "_logInternal",
+    value: function _logInternal(log) {
+      if (this.isValidLog(log)) {
+        var target = (0, _jquery["default"])(this.target);
+
+        if (target && target.length) {
+          target.append(JSON.stringify(log, this.replacer, this.space));
+        }
+      }
+    }
+  }]);
+
+  return DomLogger;
+}(BaseLogger);
+
+exports.DomLogger = DomLogger;
+
+},{"./jquery.js":3,"./util.js":6}],5:[function(require,module,exports){
+"use strict";
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var util = _interopRequireWildcard(require("./util.js"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function tagHelper(literals, expressions, fnLiteral, fnExpression) {
+  var result = [];
+
+  for (var i = 0; i < literals.length; i++) {
+    result.push(fnLiteral(literals[i]));
+
+    if (i < literals.length - 1) {
+      result.push(fnExpression(expressions[i]));
+    }
+  }
+
+  return result.join('');
+}
+
+function lower(literals) {
+  for (var _len = arguments.length, expressions = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    expressions[_key - 1] = arguments[_key];
+  }
+
+  return tagHelper(literals, expressions, function (x) {
+    return x;
+  }, function (x) {
+    return util.lower(x);
+  });
+}
+
+function upper(literals) {
+  for (var _len2 = arguments.length, expressions = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+    expressions[_key2 - 1] = arguments[_key2];
+  }
+
+  return tagHelper(literals, expressions, function (x) {
+    return x;
+  }, function (x) {
+    return util.upper(x);
+  });
+}
+
+function urlEncode(literals) {
+  for (var _len3 = arguments.length, expressions = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+    expressions[_key3 - 1] = arguments[_key3];
+  }
+
+  return tagHelper(literals, expressions, function (x) {
+    return util.urlEncodeToString(typeof x == 'string' ? x.trim() : x);
+  }, function (x) {
+    return util.urlEncodeToString(x);
+  });
+}
+
+function urlDecode(literals) {
+  for (var _len4 = arguments.length, expressions = new Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+    expressions[_key4 - 1] = arguments[_key4];
+  }
+
+  return tagHelper(literals, expressions, function (x) {
+    return util.urlDecodeToString(x);
+  }, function (x) {
+    return util.urlDecodeToString(x);
+  });
+}
+
+function reverse(literals) {
+  for (var _len5 = arguments.length, expressions = new Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+    expressions[_key5 - 1] = arguments[_key5];
+  }
+
+  return tagHelper(literals, expressions, function (x) {
+    return x;
+  }, function (x) {
+    return util.reverse(x);
+  });
+}
+
+function htmlEncode(literals) {
+  for (var _len6 = arguments.length, expressions = new Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
+    expressions[_key6 - 1] = arguments[_key6];
+  }
+
+  return tagHelper(literals, expressions, function (x) {
+    return x;
+  }, function (x) {
+    return util.htmlEncodeToString(x);
+  });
+}
+
+function htmlDecode(literals) {
+  for (var _len7 = arguments.length, expressions = new Array(_len7 > 1 ? _len7 - 1 : 0), _key7 = 1; _key7 < _len7; _key7++) {
+    expressions[_key7 - 1] = arguments[_key7];
+  }
+
+  return tagHelper(literals, expressions, function (x) {
+    return x;
+  }, function (x) {
+    return util.htmlDecodeToString(x);
+  });
+}
+
+var _default = {
+  tagHelper: tagHelper,
+  lower: lower,
+  upper: upper,
+  urlEncode: urlEncode,
+  urlDecode: urlDecode,
+  reverse: reverse,
+  htmlEncode: htmlEncode,
+  htmlDecode: htmlDecode
+};
+exports["default"] = _default;
+
+},{"./util.js":6}],6:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Hex2Bin = exports.Hex2Oct = exports.Hex2Dec = exports.Oct2Bin = exports.Oct2Hex = exports.Oct2Dec = exports.Bin2Oct = exports.Bin2Hex = exports.Bin2Dec = exports.Dec2Oct = exports.Dec2Hex = exports.Dec2Bin = exports.htmlDecodeToString = exports.htmlDecode = exports.htmlEncode = exports.htmlEncodeToString = exports._htmlDecode = exports._htmlEncode = exports._html_entity_to_char_map = exports._char_to_html_entity_map = exports.urlDecodeComponent = exports.urlEncodeComponent = exports.urlDecodeToString = exports.urlDecode = exports.urlEncodeToString = exports.urlEncode = exports.capitalize = exports.reverseToString = exports.reverse = exports.upper = exports.lower = exports.trim = exports.apply = exports.unmerge = exports.join = exports.merge = exports.right = exports.left = exports.lastIndexOf = exports.toStr = exports.deepAssign = exports.isClass = exports.isNumeric = exports.isPureFunction = exports.isBool = exports.isDate = exports.isSomeString = exports.isSomeObject = exports.isEmptyObject = exports.isObject = exports.isFunction = exports.isArray = exports.isEmpty = exports.getEls = exports.getEl = exports.NotImplementedException = void 0;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+var getEl = function getEl(x) {
+  return document && document.querySelector ? document.querySelector(x) : undefined;
+};
+
+exports.getEl = getEl;
+
+var getEls = function getEls(x) {
+  return document && document.querySelectorAll ? document.querySelectorAll(x) : undefined;
+};
+
+exports.getEls = getEls;
+
+var toStr = function toStr(x) {
+  return (x || '').toString();
+};
+
+exports.toStr = toStr;
+
+var isEmpty = function isEmpty(x) {
+  return x == null || typeof x == 'string' && x.trim() == '';
+};
+
+exports.isEmpty = isEmpty;
+var isArray = Array.isArray;
+exports.isArray = isArray;
+
+var isFunction = function isFunction(x) {
+  return typeof x == 'function' && typeof x.nodeType !== 'number';
+};
+
+exports.isFunction = isFunction;
+
+var isObject = function isObject(x) {
+  return _typeof(x) == 'object' && !isArray(x);
+};
+
+exports.isObject = isObject;
+
+var isEmptyObject = function isEmptyObject(x) {
+  return x != null && isObject(x) && Object.keys(x).length == 0;
+};
+
+exports.isEmptyObject = isEmptyObject;
+
+var isSomeObject = function isSomeObject(x) {
+  return x != null && isObject(x) && Object.keys(x).length > 0;
+};
+
+exports.isSomeObject = isSomeObject;
+
+var isSomeString = function isSomeString(x) {
+  return typeof x == 'string' && x.trim() != '';
+};
+
+exports.isSomeString = isSomeString;
+
+var isDate = function isDate(x) {
+  return x instanceof Date;
+};
+
+exports.isDate = isDate;
+
+var lastIndexOf = function lastIndexOf(str, arg) {
+  var result = -1;
+
+  if (isSomeString(str)) {
+    if (isSomeString(arg)) {
+      result = str.lastIndexOf(arg);
+    } else if (isArray(arg)) {
+      for (var i = str.length - 1; i >= 0; i--) {
+        if (arg.indexOf(str[i]) >= 0) {
+          result = i;
+          break;
+        }
+      }
+    }
+  }
+
+  return result;
+};
+
+exports.lastIndexOf = lastIndexOf;
+
+var isBool = function isBool(x) {
+  return typeof x == 'boolean';
+}; // borrowed from jQuery
+
+
+exports.isBool = isBool;
+
+var isNumeric = function isNumeric(x) {
+  var type = _typeof(x);
+
+  return (type === "number" || type === "string") && !isNaN(x - parseFloat(x));
+};
+
+exports.isNumeric = isNumeric;
+
+var left = function left(x, n) {
+  return isSomeString(x) && isNumeric(n) && n > 0 ? x.substr(0, n) : '';
+};
+
+exports.left = left;
+
+var right = function right(x, n) {
+  return isSomeString(x) && isNumeric(n) && n > 0 ? x.substr(x.length - n) : '';
+};
+
+exports.right = right;
+
+var Dec2Bin = function Dec2Bin(x) {
+  return parseInt(toStr(x)).toString(2);
+};
+
+exports.Dec2Bin = Dec2Bin;
+
+var Dec2Hex = function Dec2Hex(x) {
+  return parseInt(toStr(x)).toString(16);
+};
+
+exports.Dec2Hex = Dec2Hex;
+
+var Dec2Oct = function Dec2Oct(x) {
+  return parseInt(toStr(x)).toString(8);
+};
+
+exports.Dec2Oct = Dec2Oct;
+
+var Bin2Dec = function Bin2Dec(x) {
+  return parseInt(toStr(x), 2);
+};
+
+exports.Bin2Dec = Bin2Dec;
+
+var Bin2Hex = function Bin2Hex(x) {
+  return parseInt(toStr(x), 2).toString(16);
+};
+
+exports.Bin2Hex = Bin2Hex;
+
+var Bin2Oct = function Bin2Oct(x) {
+  return parseInt(toStr(x), 2).toString(8);
+};
+
+exports.Bin2Oct = Bin2Oct;
+
+var Oct2Dec = function Oct2Dec(x) {
+  return parseInt(toStr(x), 8);
+};
+
+exports.Oct2Dec = Oct2Dec;
+
+var Oct2Hex = function Oct2Hex(x) {
+  return parseInt(toStr(x), 8).toString(16);
+};
+
+exports.Oct2Hex = Oct2Hex;
+
+var Oct2Bin = function Oct2Bin(x) {
+  return parseInt(toStr(x), 8).toString(2);
+};
+
+exports.Oct2Bin = Oct2Bin;
+
+var Hex2Dec = function Hex2Dec(x) {
+  return parseInt(toStr(x), 16);
+};
+
+exports.Hex2Dec = Hex2Dec;
+
+var Hex2Oct = function Hex2Oct(x) {
+  return parseInt(toStr(x), 16).toString(8);
+};
+
+exports.Hex2Oct = Hex2Oct;
+
+var Hex2Bin = function Hex2Bin(x) {
+  return parseInt(toStr(x), 16).toString(2);
+};
+
+exports.Hex2Bin = Hex2Bin;
+
+var NotImplementedException = function NotImplementedException(x) {
+  if (x) {
+    throw "".concat(x || x.name, " is not implemented");
+  } else {
+    throw 'Not Imlemented Exception';
+  }
+};
+
+exports.NotImplementedException = NotImplementedException;
+
+var isPureFunction = function isPureFunction(fn) {
+  var result = false;
+
+  if (isFunction(fn)) {
+    try {
+      var caller = fn.caller;
+      result = true;
+    } catch (_unused) {}
+  }
+
+  return result;
+};
+
+exports.isPureFunction = isPureFunction;
+
+var isClass = function isClass(x) {
+  return !isPureFunction(x) && x.prototype != undefined;
+};
+
+exports.isClass = isClass;
+
+var deepAssign = function deepAssign(target) {
+  for (var _len = arguments.length, sources = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    sources[_key - 1] = arguments[_key];
+  }
+
+  // source: https://stackoverflow.com/questions/38345937/object-assign-vs-extend
+  if (!sources.length) {
+    return target;
+  }
+
+  var source = sources.shift();
+
+  if (isObject(target) && isObject(source)) {
+    for (var key in source) {
+      if (isObject(source[key])) {
+        if (!target[key]) {
+          Object.assign(target, _defineProperty({}, key, {}));
+        }
+
+        deepAssign(target[key], source[key]);
+      } else {
+        Object.assign(target, _defineProperty({}, key, source[key]));
+      }
+    }
+  }
+
+  return deepAssign.apply(void 0, [target].concat(sources));
+};
+
+exports.deepAssign = deepAssign;
+
+var merge = function merge(obj, fn, valueSeparator) {
+  if (isEmpty(obj)) {
+    return '';
+  } else if (isArray(obj)) {
+    return obj.map(function (item, i) {
+      return fn(i, obj[i]);
+    }).join(valueSeparator);
+  } else if (!isSomeObject(obj)) {
+    return toStr(obj);
+  } else {
+    return Object.keys(obj).map(function (key) {
+      return fn(key, obj[key]);
+    }).join(valueSeparator);
+  }
+};
+
+exports.merge = merge;
+
+var join = function join(obj, keySeparator, valueSeparator) {
+  return merge(obj, function (key, value) {
+    return "".concat(key).concat(keySeparator).concat(value);
+  }, valueSeparator);
+};
+
+exports.join = join;
+
+var unmerge = function unmerge(str, keySeparator, valueSeparator) {
+  var result = {};
+  var arr = toStr(str).split(valueSeparator);
+  arr.forEach(function (item) {
+    var parts = item.split(keySeparator);
+
+    if (parts[0]) {
+      result[parts[0]] = parts.length > 0 ? parts[1] : undefined;
+    }
+  });
+  return result;
+};
+
+exports.unmerge = unmerge;
+
+var apply = function apply(x, fnProcess, fnFinalize) {
+  var result;
+
+  if (!isFunction(fnFinalize)) {
+    fnFinalize = function fnFinalize(x) {
+      return x;
+    };
+  }
+
+  if (isEmpty(x)) {
+    result = '';
+  } else if (isArray(x)) {
+    result = x.map(function (item, i) {
+      return fnProcess(x, i, item);
+    });
+  } else if (isSomeObject(x)) {
+    Object.keys(x).filter(function (key) {
+      return typeof x[key] == 'string';
+    }).forEach(function (key) {
+      fnProcess(x, key, x[key]);
+    });
+    result = x;
+  } else if (isFunction(x)) {
+    result = fnProcess(null, null, toStr(x()));
+  } else {
+    result = fnProcess(null, null, toStr(x));
+  }
+
+  return fnFinalize(result);
+};
+
+exports.apply = apply;
+
+var trim = function trim(x) {
+  return apply(x, function (o, key, value) {
+    var result;
+
+    if (key != null) {
+      result = o[key] = toStr(value).trim();
+    } else {
+      result = o = toStr(value).trim();
+    }
+
+    return result;
+  });
+};
+
+exports.trim = trim;
+
+var lower = function lower(x) {
+  return apply(x, function (o, key, value) {
+    var result;
+
+    if (key != null) {
+      result = o[key] = toStr(value).toLowerCase();
+    } else {
+      result = o = toStr(value).toLowerCase();
+    }
+
+    return result;
+  });
+};
+
+exports.lower = lower;
+
+var upper = function upper(x) {
+  return apply(x, function (o, key, value) {
+    var result;
+
+    if (key != null) {
+      result = o[key] = toStr(value).toUpperCase();
+    } else {
+      result = o = toStr(value).toUpperCase();
+    }
+
+    return result;
+  });
+};
+
+exports.upper = upper;
+
+var reverse = function reverse(x) {
+  return apply(x, function (o, key, value) {
+    var result;
+
+    if (key != null) {
+      result = o[key] = toStr(value).split('').reverse().join('');
+    } else {
+      result = o = toStr(value).split('').reverse().join('');
+    }
+
+    return result;
+  });
+};
+
+exports.reverse = reverse;
+
+var reverseToString = function reverseToString(x) {
+  return function (x) {
+    return join(reverse(x), '', '');
+  };
+};
+
+exports.reverseToString = reverseToString;
+
+var capitalize = function capitalize(x) {
+  return apply(x, function (o, key, value) {
+    var result;
+    var arr = toStr(value).split(' ');
+
+    var _result = arr.map(function (part) {
+      var r = '';
+
+      if (part) {
+        r = part[0].toUpperCase() + part.substr(1);
+      }
+
+      return r;
+    }).join(' ');
+
+    if (key != null) {
+      result = o[key] = _result;
+    } else {
+      result = o = _result;
+    }
+
+    return result;
+  });
+};
+
+exports.capitalize = capitalize;
+
+var urlEncode = function urlEncode(x) {
+  return apply(x, function (o, key, value) {
+    var result;
+
+    if (key != null) {
+      result = o[typeof key == 'string' ? encodeURI(key) : key] = encodeURI(value);
+    } else {
+      result = o = encodeURI(value);
+    }
+
+    return result;
+  });
+};
+
+exports.urlEncode = urlEncode;
+
+var urlEncodeToString = function urlEncodeToString(x) {
+  var keySeparator = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '=';
+  var valueSeparator = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : ',';
+  return join(urlEncode(x), keySeparator, valueSeparator);
+};
+
+exports.urlEncodeToString = urlEncodeToString;
+
+var urlDecode = function urlDecode(x) {
+  return apply(x, function (o, key, value) {
+    var result;
+
+    if (key != null) {
+      result = o[typeof key == 'string' ? decodeURI(key) : key] = decodeURI(value);
+    } else {
+      result = o = decodeURI(value);
+    }
+
+    return result;
+  });
+};
+
+exports.urlDecode = urlDecode;
+
+var urlDecodeToString = function urlDecodeToString(x) {
+  var keySeparator = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '=';
+  var valueSeparator = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : ',';
+  return join(urlDecode(x), keySeparator, valueSeparator);
+};
+
+exports.urlDecodeToString = urlDecodeToString;
+
+var urlEncodeComponent = function urlEncodeComponent(x) {
+  return apply(x, function (o, key, value) {
+    var result;
+
+    if (key != null) {
+      result = o[typeof key == 'string' ? encodeURIComponent(key) : key] = encodeURIComponent(value);
+    } else {
+      result = o = encodeURIComponent(value);
+    }
+
+    return result;
+  });
+};
+
+exports.urlEncodeComponent = urlEncodeComponent;
+
+var urlDecodeComponent = function urlDecodeComponent(x) {
+  return apply(x, function (o, key, value) {
+    var result;
+
+    if (key != null) {
+      result = o[typeof key == 'string' ? decodeURIComponent(key) : key] = decodeURIComponent(value);
+    } else {
+      result = o = decodeURIComponent(value);
+    }
+
+    return result;
+  });
+};
+
+exports.urlDecodeComponent = urlDecodeComponent;
+var _html_entity = [[38, 'amp'], [60, 'lt'], [62, 'gt'], [160, 'nbsp'], [161, 'iexcl'], [162, 'cent'], [163, 'pound'], [164, 'curren'], [165, 'yen'], [166, 'brvbar'], [167, 'sect'], [168, 'uml'], [169, 'copy'], [170, 'ordf'], [171, 'laquo'], [172, 'not'], [173, 'shy'], [174, 'reg'], [175, 'macr'], [176, 'deg'], [177, 'plusmn'], [178, 'sup2'], [179, 'sup3'], [180, 'acute'], [181, 'micro'], [182, 'para'], [184, 'cedil'], [185, 'sup1'], [186, 'ordm'], [187, 'raquo'], [188, 'frac14'], [189, 'frac12'], [190, 'frac34'], [191, 'iquest'], [192, 'agrave'], [193, 'aacute'], [194, 'acirc'], [195, 'atilde'], [196, 'auml'], [197, 'aring'], [198, 'aelig'], [199, 'ccedil'], [200, 'egrave'], [201, 'eacute'], [202, 'ecirc'], [203, 'euml'], [204, 'igrave'], [205, 'iacute'], [206, 'icirc'], [207, 'iuml'], [208, 'eth'], [209, 'ntilde'], [210, 'ograve'], [211, 'oacute'], [212, 'ocirc'], [213, 'otilde'], [214, 'ouml'], [215, 'times'], [216, 'oslash'], [217, 'ugrave'], [218, 'uacute'], [219, 'ucirc'], [220, 'uuml'], [221, 'yacute'], [222, 'thorn'], [223, 'szlig'], [224, 'agrave'], [225, 'aacute'], [226, 'acirc'], [227, 'atilde'], [228, 'auml'], [229, 'aring'], [230, 'aelig'], [231, 'ccedil'], [232, 'egrave'], [233, 'eacute'], [234, 'ecirc'], [235, 'euml'], [236, 'igrave'], [237, 'iacute'], [238, 'icirc'], [239, 'iuml'], [240, 'eth'], [241, 'ntilde'], [242, 'ograve'], [243, 'oacute'], [244, 'ocirc'], [245, 'otilde'], [246, 'ouml'], [247, 'divide'], [248, 'oslash'], [249, 'ugrave'], [250, 'uacute'], [251, 'ucirc'], [252, 'uuml'], [253, 'yacute'], [254, 'thorn'], [255, 'yuml'], [8704, 'forall'], [8706, 'part'], [8707, 'exist'], [8709, 'empty'], [8711, 'nabla'], [8712, 'isin'], [8713, 'notin'], [8715, 'ni'], [8719, 'prod'], [8721, 'sum'], [8722, 'minus'], [8727, 'lowast'], [8730, 'radic'], [8733, 'prop'], [8734, 'infin'], [8736, 'ang'], [8743, 'and'], [8744, 'or'], [8745, 'cap'], [8746, 'cup'], [8747, 'int'], [8756, 'there4'], [8764, 'sim'], [8773, 'cong'], [8776, 'asymp'], [8800, 'ne'], [8801, 'equiv'], [8804, 'le'], [8805, 'ge'], [8834, 'sub'], [8835, 'sup'], [8836, 'nsub'], [8838, 'sube'], [8839, 'supe'], [8853, 'oplus'], [8855, 'otimes'], [8869, 'perp'], [8901, 'sdot'], [913, 'alpha'], [914, 'beta'], [915, 'gamma'], [916, 'delta'], [917, 'epsilon'], [918, 'zeta'], [919, 'eta'], [920, 'theta'], [921, 'iota'], [922, 'kappa'], [923, 'lambda'], [924, 'mu'], [925, 'nu'], [926, 'xi'], [927, 'omicron'], [928, 'pi'], [929, 'rho'], [931, 'sigma'], [932, 'tau'], [933, 'upsilon'], [934, 'phi'], [935, 'chi'], [936, 'psi'], [937, 'omega'], [945, 'alpha'], [946, 'beta'], [947, 'gamma'], [948, 'delta'], [949, 'epsilon'], [950, 'zeta'], [951, 'eta'], [952, 'theta'], [953, 'iota'], [954, 'kappa'], [955, 'lambda'], [956, 'mu'], [957, 'nu'], [958, 'xi'], [959, 'omicron'], [960, 'pi'], [961, 'rho'], [962, 'sigmaf'], [963, 'sigma'], [964, 'tau'], [965, 'upsilon'], [966, 'phi'], [967, 'chi'], [968, 'psi'], [969, 'omega'], [977, 'thetasym'], [978, 'upsih'], [982, 'piv'], [338, 'oelig'], [339, 'oelig'], [352, 'scaron'], [353, 'scaron'], [376, 'yuml'], [402, 'fnof'], [710, 'circ'], [732, 'tilde'], [8194, 'ensp'], [8195, 'emsp'], [8201, 'thinsp'], [8204, 'zwnj'], [8205, 'zwj'], [8206, 'lrm'], [8207, 'rlm'], [8211, 'ndash'], [8212, 'mdash'], [8216, 'lsquo'], [8217, 'rsquo'], [8218, 'sbquo'], [8220, 'ldquo'], [8221, 'rdquo'], [8222, 'bdquo'], [8224, 'dagger'], [8225, 'dagger'], [8226, 'bull'], [8230, 'hellip'], [8240, 'permil'], [8242, 'prime'], [8243, 'prime'], [8249, 'lsaquo'], [8250, 'rsaquo'], [8254, 'oline'], [8364, 'euro'], [8482, 'trade'], [8592, 'larr'], [8593, 'uarr'], [8594, 'rarr'], [8595, 'darr'], [8596, 'harr'], [8629, 'crarr'], [8968, 'lceil'], [8969, 'rceil'], [8970, 'lfloor'], [8971, 'rfloor'], [9674, 'loz'], [9824, 'spades'], [9827, 'clubs'], [9829, 'hearts'], [9830, 'diams']];
+var _char_to_html_entity_map = {};
+/*
+for (let i = 32; i < 160; i++) {
+	if (i != 38 && i != 60 && i != 62) {
+		_char_to_html_entity_map[String.fromCharCode(i)] = `&#${i};`
+	}
+}
+*/
+
+exports._char_to_html_entity_map = _char_to_html_entity_map;
+
+for (var i = 0; i < _html_entity.length; i++) {
+  var item = _html_entity[i];
+  _char_to_html_entity_map[String.fromCharCode(item[0])] = "&".concat(item[1], ";");
+}
+
+var _html_entity_to_char_map = {};
+exports._html_entity_to_char_map = _html_entity_to_char_map;
+
+for (var _i = 0; _i < _html_entity.length; _i++) {
+  var _item = _html_entity[_i];
+  _html_entity_to_char_map[_item[1]] = String.fromCharCode(_item[0]);
+}
+
+var _htmlEncode = function _htmlEncode(x) {
+  var result = [];
+  var s = toStr(x);
+
+  for (var _i2 = 0; _i2 < s.length; _i2++) {
+    var ch = _char_to_html_entity_map[s[_i2]];
+    result.push(ch ? ch : s[_i2]);
+  }
+
+  return result.join('');
+};
+
+exports._htmlEncode = _htmlEncode;
+
+var _htmlDecode = function _htmlDecode(x) {
+  return toStr(x).replace(/&#?\w+;/g, function (he) {
+    var result = '';
+    var isNum = false;
+    var code = '';
+
+    for (var _i3 = 1; _i3 < he.length - 1; _i3++) {
+      if (he[_i3] == '#') {
+        isNum = true;
+        continue;
+      }
+
+      code += he[_i3];
+    }
+
+    if (!isNum) {
+      code = code.toLowerCase();
+    }
+
+    if (isNum) {
+      result = String.fromCharCode(parseInt(code));
+    } else {
+      result = _html_entity_to_char_map[code];
+
+      if (!result) {
+        result = "&#".concat(code, ";");
+      }
+    }
+
+    return result;
+  });
+};
+
+exports._htmlDecode = _htmlDecode;
+
+var htmlEncode = function htmlEncode(x) {
+  return apply(x, function (o, key, value) {
+    var result;
+
+    if (key != null) {
+      result = o[key] = _htmlEncode(value);
+    } else {
+      result = o = _htmlEncode(value);
+    }
+
+    return result;
+  });
+};
+
+exports.htmlEncode = htmlEncode;
+
+var htmlEncodeToString = function htmlEncodeToString(x) {
+  return join(htmlEncode(x), '', '');
+};
+
+exports.htmlEncodeToString = htmlEncodeToString;
+
+var htmlDecode = function htmlDecode(x) {
+  return apply(x, function (o, key, value) {
+    var result;
+
+    if (key != null) {
+      result = o[key] = _htmlDecode(value);
+    } else {
+      result = o = _htmlDecode(value);
+    }
+
+    return result;
+  });
+};
+
+exports.htmlDecode = htmlDecode;
+
+var htmlDecodeToString = function htmlDecodeToString(x) {
+  return join(htmlDecode(x), '', '');
+};
+
+exports.htmlDecodeToString = htmlDecodeToString;
+
+},{}],7:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.isValidId = exports.isValidDomId = exports.isValidEvent = exports.isValudURI = exports.isValidAttributeName = exports.isValidTag = void 0;
+
+var _util = require("./util.js");
+
+var isValidTag = function isValidTag(tag) {
+  return (0, _util.isSomeString)(tag) && /^[a-zA-Z][a-zA-Z0-9-_]*$/.test(tag);
+};
+
+exports.isValidTag = isValidTag;
+
+var isValidAttributeName = function isValidAttributeName(attr) {
+  return (0, _util.isSomeString)(attr) && /^[a-zA-Z][a-zA-Z0-9-_]*$/.test(attr);
+};
+
+exports.isValidAttributeName = isValidAttributeName;
+
+var isValudURI = function isValudURI(uri) {
+  return (0, _util.isSomeString)(uri) && /^(http|https):\/\/[a-zA-Z0-9-_\.]$/.test(uri);
+};
+
+exports.isValudURI = isValudURI;
+
+var isValidEvent = function isValidEvent(e) {
+  return (0, _util.isSomeString)(e) && /^\w+$/.test(e);
+};
+
+exports.isValidEvent = isValidEvent;
+
+var isValidDomId = function isValidDomId(e) {
+  return (0, _util.isSomeString)(e) && /^[a-zA-Z](\w|-|:|\.)*$/.test(e);
+};
+
+exports.isValidDomId = isValidDomId;
+
+var isValidId = function isValidId(e) {
+  return (0, _util.isSomeString)(e) && /^[a-zA-Z]\w*$/.test(e);
+};
+
+exports.isValidId = isValidId;
+
+},{"./util.js":6}]},{},[1]);

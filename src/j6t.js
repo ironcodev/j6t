@@ -94,6 +94,7 @@ const attributes = [
 		^xxx${value}		assume xxx as an attribute (use BaseAttribute class)	e.g.	^style${args}
 		@${xxx}${value}		dynamic name execution. assume xxx as a name as if xxx${value} is specified.
 		$xxx${value}		assume xxx as a tag (use BaseTag class) 				e.g.	$asp-text${args}
+		//...${value}		comment: ignore the text after // and next expression
 		
 		 ${x}	htmlEncode
 		!${x}	no html encode
@@ -327,12 +328,12 @@ class j6tUniversalIdProvider extends j6tIdProvider {
 	generate(id) {
 		let doGenerate = false;
 		
-		if (typeof id != 'string' || !isValid(id)) {
+		if (typeof id != 'string' || !this.isValid(id)) {
 			doGenerate = true;
 		} else {
 			id = id.trim();
 			
-			if (id.indexOf(' ') >= 0 || id.replace(this.idPrefix, '') < this.counter) {
+			if (id.indexOf(' ') >= 0) {
 				doGenerate = true;
 			}
 		}
@@ -361,7 +362,7 @@ class j6tNestedIdProvider extends j6tIdProvider {
 	generate(id) {
 		let doGenerate = false;
 		
-		if (typeof id != 'string' || !isValid(id)) {
+		if (typeof id != 'string' || !this.isValid(id)) {
 			doGenerate = true;
 		} else {
 			id = id.trim();
@@ -515,6 +516,34 @@ class Component {
 			case 'xb':
 				result = util.Hex2Bin(value);
 				break;
+				
+			case 'urlencode':
+				result = util.urlEncodeToString(value);
+				break;
+			case 'urldecode':
+				result = util.urlDecodeToString(value);
+				break;
+			case 'htmldecode':
+				result = util.htmlDecode(value);
+				break;
+			case 'upper':
+				result = util.upper(value);
+				break;
+			case 'lower':
+				result = util.lower(value);
+				break;
+			case 'capitalize':
+				result = util.capitalize(value);
+				break;
+			case 'reverse':
+				result = util.reverseToString(value);
+				break;
+			case 'trim':
+				result = util.trim(value);
+				break;
+			default:
+				result = '*' + command + util.htmlEncodeToString(value);
+				break;
 		}
 		
 		return result;
@@ -539,7 +568,7 @@ class Component {
 				}
 			*/
 			
-			function _create(str, ignoreOwner) {
+			function _create(str, props, ignoreOwner) {
 				let obj;
 				
 				try {
@@ -585,6 +614,12 @@ class Component {
 			let obj;
 			
 			do {
+				if (!validation.isValidId(args.name)) {
+					result.push(args.directive + util.htmlEncodeToString(args.name + args.arg));
+					
+					break;
+				}
+				
 				let props = util.isSomeObject(args.arg) ? { ...args.arg } : { arg: args.arg };
 				
 				if (args.name == 'bind') {
@@ -593,41 +628,49 @@ class Component {
 					props.parent = me;
 				}
 				
-				if (_check(`util.isFunction(${args.name}Element)`)) {
-					obj = _create(`new ${args.name}Element(props)`);
+				if (_check(`util.isFunction(${args.name})`)) {
+					obj = _create(`new ${args.name}(props)`, props);
 					
 					break;
 				}
-				
-				// if (_check(`util.isFunction(j6t.${args.name}Element)`)) {
-					// obj = _create(`new j6t.${args.name}Element(props)`);
+				if (_check(`util.isFunction(${args.name}Element)`)) {
+					obj = _create(`new ${args.name}Element(props)`, props);
 					
-					// break;
-				// }
+					break;
+				}
 				
 				if (_check(`util.isFunction(${args.name}Tag)`)) {
-					obj = _create(`new ${args.name}Tag(props)`);
+					obj = _create(`new ${args.name}Tag(props)`, props);
 					
 					break;
 				}
-				
-				// if (_check(`util.isFunction(j6t.${args.name}Tag)`)) {
-					// obj = _create(`new j6t.${args.name}Tag(props)`);
-					
-					// break;
-				// }
 				
 				if (_check(`util.isFunction(${args.name}Attribute)`)) {
-					obj = _create(`new ${args.name}Attribute({ attributeName: '${args.name}', attributeValue: args.arg, container: me })`, true);
+					let currentIdIsForMe = false;
+					
+					if (args.name == 'id') {
+						if (util.isSomeString(args.arg) && args.arg[0] == '#') {
+							if (args.arg.length > 1) {
+								currentIdIsForMe = true;
+								args.arg = args.arg.substr(1);
+							} else {
+								args.arg = me.id;
+							}
+						} else {
+							if (args.arg == 0) {
+								args.arg = me.id;
+							}
+						}
+					}
+					
+					obj = _create(`new ${args.name}Attribute({ attributeName: '${args.name}', attributeValue: args.arg, container: me })`, null, true);
+					
+					if (currentIdIsForMe) {
+						me.id = obj.attributeValue;
+					}
 					
 					break;
 				}
-				
-				// if (_check(`util.isFunction(j6t.${args.name}Attribute)`)) {
-					// obj = _create(`new j6t.${args.name}Attribute({ attributeValue: args.arg, container: me )`, true);
-					
-					// break;
-				// }
 				
 				if (events.indexOf(args.name) >= 0 || args.directive == '#') {
 					obj = new bindElement({
@@ -650,34 +693,33 @@ class Component {
 					break;
 				}
 				
-				if (validation.isValidAttributeName(args.name)) {
-					if (args.directive == '$') {
-						obj = new BaseTag({ tagName: args.name, ...props });
-					} else {
-						obj = new BaseAttribute({ attributeName: args.name, attributeValue: args.arg, container: me });
-					}
+				if (args.directive == '$') {
+					obj = new BaseTag({ tagName: args.name, ...props });
 				} else {
-					result.push(args.directive + args.name);
+					obj = new BaseAttribute({ attributeName: args.name, attributeValue: args.arg, container: me });
 				}
 			} while (false);
 			
 			_render(obj);
 		}
-		function _evaluateExpression(index, execFunc = true) {
-			let _result;
+		function _evaluateExpression(index, callExpression, ...args) {
+			let _result = '';
 			let _value = expressions[index];
 			
 			if (util.isFunction(_value)) {
-				if (execFunc) {
+				if (callExpression) {
 					try {
 						if (util.isArray(arr)) {
+							_result = [];
 							arr.forEach((a, i) => {
-								result.push(_value(a, i, me))
+								let row = _value(a, i, me);
+								
+								_result.push(row);
 							});
 							arr = null;
-							_result = '';
+							_result = _result.join('');
 						} else {
-							let _args = [ me ];
+							let _args = [ me, ...args ];
 							
 							_result = _value.apply(null, _args);
 						}
@@ -705,29 +747,33 @@ class Component {
 			let literal = literals[i];
 			
 			if (i < literals.length - 1) {
-				let spaceIndex = -1;
+				let lastWhitespaceIndex = -1;
 				let starIndex = -1;
-				let literalBeforeSpace = '';
-				let literalAfterSpace = '';
+				let literalBeforeWhitespace = '';
+				let literalAfterWhitespace = '';
 				let firstCh = '';
 				let lastCh = '';
 				let name = '';
 				let command = '';
 				let value;
 				
-				spaceIndex = literal ? util.lastIndexOf(literal, [' ', '\t', '\n']): -1;
-				literalBeforeSpace = spaceIndex >= 0 ? literal.substr(0, spaceIndex + 1) : '';
-				literalAfterSpace = spaceIndex >= 0 ? literal.substr(spaceIndex + 1) : literal;
-				firstCh = literalAfterSpace ? literalAfterSpace[0]: '';
-				lastCh = literalAfterSpace ? literalAfterSpace[literalAfterSpace.length - 1]: '';
-				value = _evaluateExpression(i);
+				lastWhitespaceIndex = literal ? util.lastIndexOf(literal, [' ', '\t', '\n']): -1;
+				literalBeforeWhitespace = lastWhitespaceIndex >= 0 ? literal.substr(0, lastWhitespaceIndex + 1) : '';
+				literalAfterWhitespace = lastWhitespaceIndex >= 0 ? literal.substr(lastWhitespaceIndex + 1) : literal;
+				firstCh = literalAfterWhitespace ? literalAfterWhitespace[0]: '';
+				lastCh = literalAfterWhitespace ? literalAfterWhitespace[literalAfterWhitespace.length - 1]: '';
 				
-				if (['#', '^', '$'].indexOf(firstCh) < 0) {	/* currently we only support #, ^ and $, but in the future we may
+				if (['#', '^', '$', '*'].indexOf(firstCh) < 0) {
+														/* currently we only support #, ^ and $, but in the future we may
 															extend j6tRoot and support other charcaters to start a name command.
 														   
 														   #xxx${args}	manual event		e.g. #ontimeout${myHandler}
 														   ^xxx${args}	explicit attribute	e.g. ^label${'lblFoo'}
 														   $xxx${args}	explicit tag		e.g. $style${'body { font: Tahoma }'}
+														   *xxx${args}	exec command
+														   
+														   possible future extensions:
+														   
 														   @xxx${args}	reserved
 														   +xxx${args}	reserved
 														   -xxx${args}	reserved
@@ -742,21 +788,22 @@ class Component {
 				
 				if (lastCh == '@') {
 					if (i < expressions.length - 1 && literals[i + 1] == '') {
-						name = value;
-						value = _evaluateExpression(i + 1, false);
+						name = _evaluateExpression(i, true);
 					} else {
 						lastCh = '';
 					}
 				}
 				
-				if (lastCh && ['@', '!', '&', '%', '=', '-', '~', '/', '|', '#', '.'].indexOf(lastCh) < 0) {
+				if (lastCh && ['@', '!', '#'].indexOf(lastCh) < 0) {
 					lastCh = '';
 				}
 				
 				if (lastCh == '') {
-					name = firstCh ? literalAfterSpace.substr(1) : literalAfterSpace.substr(0);
-					starIndex = name ? name.lastIndexOf('*'): -1;
-					command = starIndex >= 0 ? name.substr(starIndex + 1) : '';
+					name = firstCh ? literalAfterWhitespace.substr(1) : literalAfterWhitespace.substr(0);
+					
+					starIndex = name.lastIndexOf('*');
+					
+					command = starIndex >= 0 ? name.substr(starIndex + 1): '';
 				}
 
 				if (lastCh && literal.length > 1) {
@@ -766,60 +813,78 @@ class Component {
 				switch (lastCh)
 				{
 					case '!':
+						value = _evaluateExpression(i, true);
+						
 						result.push(value);
 						break;
-					case '.':
-						result.push(me.lastId);
-						break;
-					case '&':
-						result.push(util.urlDecodeToString(value));
-						break;
-					case '%':
-						result.push(util.urlEncodeToString(value));
-						break;
 					case '#':
-						result.push(util.htmlDecode(value));
-						break;
-					case '=':
-						result.push(util.upper(value));
-						break;
-					case '-':
-						result.push(util.lower(value));
-						break;
-					case '~':
-						result.push(util.capitalize(value));
-						break;
-					case '/':
-						result.push(util.reverseToString(value));
-						break;
-					case '|':
-						result.push(util.trim(value));
+						value = _evaluateExpression(i, true);
+						
+						if (value == 0) {
+							result.push('#' + me.id);
+						} else {
+							result.push('#' + me.lastId);
+						}
 						break;
 					case '@':
-						_evalName({
-							name: name,
-							arg: value,
-							directive: ''
-						});
+						if (['&', '%', '.', '=', '-', '~', '/', '|'].indexOf(name) >= 0) {
+							value = _evaluateExpression(i + 1, true);
+						} else {
+							value = _evaluateExpression(i + 1, false);
+						}
+						
+						switch (name) {
+							case '&':
+								result.push(util.urlDecodeToString(value));
+								break;
+							case '%':
+								result.push(util.urlEncodeToString(value));
+								break;
+							case '.':
+								result.push(util.htmlDecode(value));
+								break;
+							case '=':
+								result.push(util.upper(value));
+								break;
+							case '-':
+								result.push(util.lower(value));
+								break;
+							case '~':
+								result.push(util.capitalize(value));
+								break;
+							case '/':
+								result.push(util.reverseToString(value));
+								break;
+							case '|':
+								result.push(util.trim(value));
+								break;
+							default:
+								_evalName({
+									name: name,
+									arg: value,
+									directive: ''
+								});
+								break;
+						}
 						
 						i++;	// this is necessary since we have read the next expression ahead of current expression
 						
 						break;
 					default:
 						if (command) {
-							starIndex = literal.lastIndexOf('*');
+							result.push(util.left(literal, literal.length - command.length - 1));
 							
-							if (starIndex > 0) {
-								result.push(literal.substr(0, starIndex));
-							}
+							value = _evaluateExpression(i, command[command.length - 1] != '*', command);
 							
 							let execResult = exec(command, value);
 							
 							if (execResult) {
 								result.push(execResult);
 							}
-						} else if (util.isSomeString(name)) {
-							result.push(literalBeforeSpace);
+						} else if (validation.isValidId(name)) {
+							result.push(literalBeforeWhitespace);
+							
+							value = _evaluateExpression(i, false);
 							
 							_evalName({
 								name: name,
@@ -827,10 +892,9 @@ class Component {
 								directive: firstCh
 							});
 						} else {
-							if (literal) {
-								result.push(literal);
-							}
+							value = _evaluateExpression(i, true);
 							
+							result.push(literal);
 							result.push(util.htmlEncodeToString(value));
 						}
 						
@@ -849,10 +913,10 @@ class Component {
 		util.NotImplementedException(`${this.constructor.name}.render()`)
 	}
 	refresh() {
-		if (jQuery(this.id).length == 1) {
+		if (jQuery('#' + this.id).length == 1) {
 			const html = this.render();
 			
-			jQuery(this.id).replaceWith(html);
+			jQuery('#' + this.id).replaceWith(html);
 			
 			this.bindEvents();
 		}
@@ -1194,8 +1258,8 @@ class idAttribute extends BaseAttribute {
 			this.attributeValue = '';
 		}
 		
-		if (util.isSomeObject(this.parent)) {
-			this.parent.lastId = this.attributeValue = this.parent.idProvider.generate(this.attributeValue);
+		if (util.isSomeObject(this.container)) {
+			this.container.lastId = this.attributeValue = this.container.idProvider.generate(this.attributeValue);
 		}
 	}
 }

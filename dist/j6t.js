@@ -179,6 +179,7 @@ var attributes = ['accept', 'accept-charset', 'accesskey', 'action', 'align', 'a
 		^xxx${value}		assume xxx as an attribute (use BaseAttribute class)	e.g.	^style${args}
 		@${xxx}${value}		dynamic name execution. assume xxx as a name as if xxx${value} is specified.
 		$xxx${value}		assume xxx as a tag (use BaseTag class) 				e.g.	$asp-text${args}
+		//...${value}		comment: ignore the text after // and next expression
 		
 		 ${x}	htmlEncode
 		!${x}	no html encode
@@ -403,12 +404,12 @@ function (_j6tIdProvider) {
     value: function generate(id) {
       var doGenerate = false;
 
-      if (typeof id != 'string' || !isValid(id)) {
+      if (typeof id != 'string' || !this.isValid(id)) {
         doGenerate = true;
       } else {
         id = id.trim();
 
-        if (id.indexOf(' ') >= 0 || id.replace(this.idPrefix, '') < this.counter) {
+        if (id.indexOf(' ') >= 0) {
           doGenerate = true;
         }
       }
@@ -470,7 +471,7 @@ function (_j6tIdProvider2) {
     value: function generate(id) {
       var doGenerate = false;
 
-      if (typeof id != 'string' || !isValid(id)) {
+      if (typeof id != 'string' || !this.isValid(id)) {
         doGenerate = true;
       } else {
         id = id.trim();
@@ -655,6 +656,42 @@ function () {
         case 'xb':
           result = util.Hex2Bin(value);
           break;
+
+        case 'urlencode':
+          result = util.urlEncodeToString(value);
+          break;
+
+        case 'urldecode':
+          result = util.urlDecodeToString(value);
+          break;
+
+        case 'htmldecode':
+          result = util.htmlDecode(value);
+          break;
+
+        case 'upper':
+          result = util.upper(value);
+          break;
+
+        case 'lower':
+          result = util.lower(value);
+          break;
+
+        case 'capitalize':
+          result = util.capitalize(value);
+          break;
+
+        case 'reverse':
+          result = util.reverseToString(value);
+          break;
+
+        case 'trim':
+          result = util.trim(value);
+          break;
+
+        default:
+          result = '*' + command + util.htmlEncodeToString(value);
+          break;
       }
 
       return result;
@@ -688,7 +725,7 @@ function () {
         		directive: ''	// ^, #
         	}
         */
-        function _create(str, ignoreOwner) {
+        function _create(str, props, ignoreOwner) {
           var obj;
 
           try {
@@ -734,6 +771,11 @@ function () {
         var obj;
 
         do {
+          if (!validation.isValidId(args.name)) {
+            result.push(args.directive + util.htmlEncodeToString(args.name + args.arg));
+            break;
+          }
+
           var _props2 = util.isSomeObject(args.arg) ? _objectSpread({}, args.arg) : {
             arg: args.arg
           };
@@ -744,32 +786,43 @@ function () {
             _props2.parent = me;
           }
 
-          if (_check("util.isFunction(".concat(args.name, "Element)"))) {
-            obj = _create("new ".concat(args.name, "Element(props)"));
+          if (_check("util.isFunction(".concat(args.name, ")"))) {
+            obj = _create("new ".concat(args.name, "(props)"), _props2);
             break;
-          } // if (_check(`util.isFunction(j6t.${args.name}Element)`)) {
-          // obj = _create(`new j6t.${args.name}Element(props)`);
-          // break;
-          // }
+          }
 
+          if (_check("util.isFunction(".concat(args.name, "Element)"))) {
+            obj = _create("new ".concat(args.name, "Element(props)"), _props2);
+            break;
+          }
 
           if (_check("util.isFunction(".concat(args.name, "Tag)"))) {
-            obj = _create("new ".concat(args.name, "Tag(props)"));
+            obj = _create("new ".concat(args.name, "Tag(props)"), _props2);
             break;
-          } // if (_check(`util.isFunction(j6t.${args.name}Tag)`)) {
-          // obj = _create(`new j6t.${args.name}Tag(props)`);
-          // break;
-          // }
-
+          }
 
           if (_check("util.isFunction(".concat(args.name, "Attribute)"))) {
-            obj = _create("new ".concat(args.name, "Attribute({ attributeName: '").concat(args.name, "', attributeValue: args.arg, container: me })"), true);
-            break;
-          } // if (_check(`util.isFunction(j6t.${args.name}Attribute)`)) {
-          // obj = _create(`new j6t.${args.name}Attribute({ attributeValue: args.arg, container: me )`, true);
-          // break;
-          // }
+            var currentIdIsForMe = false;
 
+            if (args.name == 'id') {
+              if (util.isSomeString(args.arg) && args.arg[0] == '#') {
+                currentIdIsForMe = true;
+                args.arg = args.arg.substr(1);
+              } else {
+                if (args.arg == 0) {
+                  args.arg = me.id;
+                }
+              }
+            }
+
+            obj = _create("new ".concat(args.name, "Attribute({ attributeName: '").concat(args.name, "', attributeValue: args.arg, container: me })"), null, true);
+
+            if (currentIdIsForMe) {
+              me.id = obj.attributeValue;
+            }
+
+            break;
+          }
 
           if (events.indexOf(args.name) >= 0 || args.directive == '#') {
             obj = new bindElement({
@@ -797,44 +850,45 @@ function () {
             break;
           }
 
-          if (validation.isValidAttributeName(args.name)) {
-            if (args.directive == '$') {
-              obj = new BaseTag(_objectSpread({
-                tagName: args.name
-              }, _props2));
-            } else {
-              obj = new BaseAttribute({
-                attributeName: args.name,
-                attributeValue: args.arg,
-                container: me
-              });
-            }
+          if (args.directive == '$') {
+            obj = new BaseTag(_objectSpread({
+              tagName: args.name
+            }, _props2));
           } else {
-            result.push(args.directive + args.name);
+            obj = new BaseAttribute({
+              attributeName: args.name,
+              attributeValue: args.arg,
+              container: me
+            });
           }
         } while (false);
 
         _render(obj);
       }
 
-      function _evaluateExpression(index) {
-        var execFunc = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-
-        var _result;
-
+      function _evaluateExpression(index, callExpression) {
+        var _result = '';
         var _value = expressions[index];
 
         if (util.isFunction(_value)) {
-          if (execFunc) {
+          if (callExpression) {
             try {
               if (util.isArray(arr)) {
+                _result = [];
                 arr.forEach(function (a, i) {
-                  result.push(_value(a, i, me));
+                  var row = _value(a, i, me);
+
+                  _result.push(row);
                 });
                 arr = null;
-                _result = '';
+                _result = _result.join('');
               } else {
-                var _args = [me];
+                for (var _len2 = arguments.length, args = new Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+                  args[_key2 - 2] = arguments[_key2];
+                }
+
+                var _args = [me].concat(args);
+
                 _result = _value.apply(null, _args);
               }
             } catch (err) {
@@ -860,56 +914,59 @@ function () {
         var literal = literals[i];
 
         if (i < literals.length - 1) {
-          var spaceIndex = -1;
+          var lastWhitespaceIndex = -1;
           var starIndex = -1;
-          var literalBeforeSpace = '';
-          var literalAfterSpace = '';
+          var literalBeforeWhitespace = '';
+          var literalAfterWhitespace = '';
           var firstCh = '';
           var lastCh = '';
           var name = '';
           var command = '';
           var value = void 0;
-          spaceIndex = literal ? util.lastIndexOf(literal, [' ', '\t', '\n']) : -1;
-          literalBeforeSpace = spaceIndex >= 0 ? literal.substr(0, spaceIndex + 1) : '';
-          literalAfterSpace = spaceIndex >= 0 ? literal.substr(spaceIndex + 1) : literal;
-          firstCh = literalAfterSpace ? literalAfterSpace[0] : '';
-          lastCh = literalAfterSpace ? literalAfterSpace[literalAfterSpace.length - 1] : '';
-          value = _evaluateExpression(i);
+          lastWhitespaceIndex = literal ? util.lastIndexOf(literal, [' ', '\t', '\n']) : -1;
+          literalBeforeWhitespace = lastWhitespaceIndex >= 0 ? literal.substr(0, lastWhitespaceIndex + 1) : '';
+          literalAfterWhitespace = lastWhitespaceIndex >= 0 ? literal.substr(lastWhitespaceIndex + 1) : literal;
+          firstCh = literalAfterWhitespace ? literalAfterWhitespace[0] : '';
+          lastCh = literalAfterWhitespace ? literalAfterWhitespace[literalAfterWhitespace.length - 1] : '';
 
-          if (['#', '^', '$'].indexOf(firstCh) < 0) {
+          if (['#', '^', '$', '*'].indexOf(firstCh) < 0) {
             /* currently we only support #, ^ and $, but in the future we may
-            extend j6tRoot and support other charcaters to start a name command.
-            #xxx${args}	manual event		e.g. #ontimeout${myHandler}
-            ^xxx${args}	explicit attribute	e.g. ^label${'lblFoo'}
-            $xxx${args}	explicit tag		e.g. $style${'body { font: Tahoma }'}
-            @xxx${args}	reserved
-            +xxx${args}	reserved
-            -xxx${args}	reserved
-            :xxx${args}	reserved
-            /xxx${args}	reserved
-            &xxx${args}	reserved
-            !xxx${args}	reserved
-            %xxx${args}	reserved
+            	extend j6tRoot and support other charcaters to start a name command.
+               
+               #xxx${args}	manual event		e.g. #ontimeout${myHandler}
+               ^xxx${args}	explicit attribute	e.g. ^label${'lblFoo'}
+               $xxx${args}	explicit tag		e.g. $style${'body { font: Tahoma }'}
+               *xxx${args}	exec command
+               
+               possible future extensions:
+               
+               @xxx${args}	reserved
+               +xxx${args}	reserved
+               -xxx${args}	reserved
+               :xxx${args}	reserved
+               /xxx${args}	reserved
+               &xxx${args}	reserved
+               !xxx${args}	reserved
+               %xxx${args}	reserved
             */
             firstCh = '';
           }
 
           if (lastCh == '@') {
             if (i < expressions.length - 1 && literals[i + 1] == '') {
-              name = value;
-              value = _evaluateExpression(i + 1, false);
+              name = _evaluateExpression(i, true);
             } else {
               lastCh = '';
             }
           }
 
-          if (lastCh && ['@', '!', '&', '%', '=', '-', '~', '/', '|', '#', '.'].indexOf(lastCh) < 0) {
+          if (lastCh && ['@', '!', '#'].indexOf(lastCh) < 0) {
             lastCh = '';
           }
 
           if (lastCh == '') {
-            name = firstCh ? literalAfterSpace.substr(1) : literalAfterSpace.substr(0);
-            starIndex = name ? name.lastIndexOf('*') : -1;
+            name = firstCh ? literalAfterWhitespace.substr(1) : literalAfterWhitespace.substr(0);
+            starIndex = name.lastIndexOf('*');
             command = starIndex >= 0 ? name.substr(starIndex + 1) : '';
           }
 
@@ -919,51 +976,70 @@ function () {
 
           switch (lastCh) {
             case '!':
+              value = _evaluateExpression(i, true);
               result.push(value);
               break;
 
-            case '.':
-              result.push(me.lastId);
-              break;
-
-            case '&':
-              result.push(util.urlDecodeToString(value));
-              break;
-
-            case '%':
-              result.push(util.urlEncodeToString(value));
-              break;
-
             case '#':
-              result.push(util.htmlDecode(value));
-              break;
+              value = _evaluateExpression(i, true);
 
-            case '=':
-              result.push(util.upper(value));
-              break;
+              if (value == 0) {
+                result.push('#' + me.id);
+              } else {
+                result.push('#' + me.lastId);
+              }
 
-            case '-':
-              result.push(util.lower(value));
-              break;
-
-            case '~':
-              result.push(util.capitalize(value));
-              break;
-
-            case '/':
-              result.push(util.reverseToString(value));
-              break;
-
-            case '|':
-              result.push(util.trim(value));
               break;
 
             case '@':
-              _evalName({
-                name: name,
-                arg: value,
-                directive: ''
-              });
+              if (['&', '%', '.', '=', '-', '~', '/', '|'].indexOf(name) >= 0) {
+                value = _evaluateExpression(i + 1, true);
+              } else {
+                value = _evaluateExpression(i + 1, false);
+              }
+
+              switch (name) {
+                case '&':
+                  result.push(util.urlDecodeToString(value));
+                  break;
+
+                case '%':
+                  result.push(util.urlEncodeToString(value));
+                  break;
+
+                case '.':
+                  result.push(util.htmlDecode(value));
+                  break;
+
+                case '=':
+                  result.push(util.upper(value));
+                  break;
+
+                case '-':
+                  result.push(util.lower(value));
+                  break;
+
+                case '~':
+                  result.push(util.capitalize(value));
+                  break;
+
+                case '/':
+                  result.push(util.reverseToString(value));
+                  break;
+
+                case '|':
+                  result.push(util.trim(value));
+                  break;
+
+                default:
+                  _evalName({
+                    name: name,
+                    arg: value,
+                    directive: ''
+                  });
+
+                  break;
+              }
 
               i++; // this is necessary since we have read the next expression ahead of current expression
 
@@ -971,19 +1047,16 @@ function () {
 
             default:
               if (command) {
-                starIndex = literal.lastIndexOf('*');
-
-                if (starIndex > 0) {
-                  result.push(literal.substr(0, starIndex));
-                }
-
+                result.push(util.left(literal, literal.length - command.length - 1));
+                value = _evaluateExpression(i, command[command.length - 1] != '*', command);
                 var execResult = exec(command, value);
 
                 if (execResult) {
                   result.push(execResult);
                 }
-              } else if (util.isSomeString(name)) {
-                result.push(literalBeforeSpace);
+              } else if (validation.isValidId(name)) {
+                result.push(literalBeforeWhitespace);
+                value = _evaluateExpression(i, false);
 
                 _evalName({
                   name: name,
@@ -991,10 +1064,8 @@ function () {
                   directive: firstCh
                 });
               } else {
-                if (literal) {
-                  result.push(literal);
-                }
-
+                value = _evaluateExpression(i, true);
+                result.push(literal);
                 result.push(util.htmlEncodeToString(value));
               }
 
@@ -1017,9 +1088,9 @@ function () {
   }, {
     key: "refresh",
     value: function refresh() {
-      if ((0, _jquery["default"])(this.id).length == 1) {
+      if ((0, _jquery["default"])('#' + this.id).length == 1) {
         var html = this.render();
-        (0, _jquery["default"])(this.id).replaceWith(html);
+        (0, _jquery["default"])('#' + this.id).replaceWith(html);
         this.bindEvents();
       }
     }
@@ -1636,8 +1707,8 @@ function (_BaseAttribute3) {
       _this14.attributeValue = '';
     }
 
-    if (util.isSomeObject(_this14.parent)) {
-      _this14.parent.lastId = _this14.attributeValue = _this14.parent.idProvider.generate(_this14.attributeValue);
+    if (util.isSomeObject(_this14.container)) {
+      _this14.container.lastId = _this14.attributeValue = _this14.container.idProvider.generate(_this14.attributeValue);
     }
 
     return _this14;
@@ -2581,7 +2652,7 @@ exports["default"] = _default;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Hex2Bin = exports.Hex2Oct = exports.Hex2Dec = exports.Oct2Bin = exports.Oct2Hex = exports.Oct2Dec = exports.Bin2Oct = exports.Bin2Hex = exports.Bin2Dec = exports.Dec2Oct = exports.Dec2Hex = exports.Dec2Bin = exports.htmlDecodeToString = exports.htmlDecode = exports.htmlEncode = exports.htmlEncodeToString = exports._htmlDecode = exports._htmlEncode = exports._html_entity_to_char_map = exports._char_to_html_entity_map = exports.urlDecodeComponent = exports.urlEncodeComponent = exports.urlDecodeToString = exports.urlDecode = exports.urlEncodeToString = exports.urlEncode = exports.capitalize = exports.reverseToString = exports.reverse = exports.upper = exports.lower = exports.trim = exports.apply = exports.unmerge = exports.join = exports.merge = exports.right = exports.left = exports.lastIndexOf = exports.toStr = exports.deepAssign = exports.isClass = exports.isNumeric = exports.isPureFunction = exports.isBool = exports.isDate = exports.isSomeString = exports.isSomeObject = exports.isEmptyObject = exports.isObject = exports.isFunction = exports.isArray = exports.isEmpty = exports.getEls = exports.getEl = exports.NotImplementedException = void 0;
+exports.range = exports.Hex2Bin = exports.Hex2Oct = exports.Hex2Dec = exports.Oct2Bin = exports.Oct2Hex = exports.Oct2Dec = exports.Bin2Oct = exports.Bin2Hex = exports.Bin2Dec = exports.Dec2Oct = exports.Dec2Hex = exports.Dec2Bin = exports.htmlDecodeToString = exports.htmlDecode = exports.htmlEncode = exports.htmlEncodeToString = exports._htmlDecode = exports._htmlEncode = exports._html_entity_to_char_map = exports._char_to_html_entity_map = exports.urlDecodeComponent = exports.urlEncodeComponent = exports.urlDecodeToString = exports.urlDecode = exports.urlEncodeToString = exports.urlEncode = exports.capitalize = exports.reverseToString = exports.reverse = exports.upper = exports.lower = exports.trim = exports.apply = exports.unmerge = exports.join = exports.merge = exports.right = exports.left = exports.lastIndexOf = exports.toStr = exports.deepAssign = exports.isClass = exports.isNumeric = exports.isPureFunction = exports.isBool = exports.isDate = exports.isSomeString = exports.isSomeObject = exports.isEmptyObject = exports.isObject = exports.isFunction = exports.isArray = exports.isEmpty = exports.getEls = exports.getEl = exports.NotImplementedException = void 0;
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -3201,6 +3272,18 @@ var htmlDecodeToString = function htmlDecodeToString(x) {
 
 exports.htmlDecodeToString = htmlDecodeToString;
 
+var range = function range(from, to) {
+  var result = new Array(to - from);
+
+  for (var _i4 = from; _i4 < to; _i4++) {
+    result.push(_i4);
+  }
+
+  return result;
+};
+
+exports.range = range;
+
 },{}],7:[function(require,module,exports){
 "use strict";
 
@@ -3236,7 +3319,7 @@ var isValidEvent = function isValidEvent(e) {
 exports.isValidEvent = isValidEvent;
 
 var isValidDomId = function isValidDomId(e) {
-  return (0, _util.isSomeString)(e) && /^[a-zA-Z](\w|-|:|\.)*$/.test(e);
+  return (0, _util.isSomeString)(e) && /^\w(\w|-|:|\.)*$/.test(e);
 };
 
 exports.isValidDomId = isValidDomId;

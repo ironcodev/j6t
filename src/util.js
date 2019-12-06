@@ -613,6 +613,16 @@ const htmlDecode = x => apply(x, (o, key, value) => {
 
 const htmlDecodeToString = x => join(htmlDecode(x), '', '');
 
+const range = (from, to) => {
+   let result = new Array(to - from);
+	
+   for (let i = from; i < to; i++) {
+	 result.push(i)
+   }
+	
+   return result;
+}
+	
 export {
 	NotImplementedException	,
 	getEl					,
@@ -677,5 +687,7 @@ export {
 	
     Hex2Dec                 ,
     Hex2Oct                 ,
-    Hex2Bin                 
+    Hex2Bin                 ,
+	
+	range
 }

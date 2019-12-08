@@ -131,6 +131,19 @@ const attributes = [
 		*xd${}	hex2dec		*xd${'1c'}	=> 29
 		*xo${}	hex2oct		*xo${'1c'}	=> 35
 		*xb${}	hex2bin		*xb${'1c'}	=> 11101
+		
+		id${...}, #${...} rules:
+			id${'#a'}	=> set id for me (me.id)
+			id${'#'}	=> generate id for me	(me.id)	alternate
+			id${0}		=> generate id for last and store		(me.lastId, me.ids[0])
+			id${1}		=> generate id for last and store		(me.lastId, me.ids[1])
+			id${''}		=> generate id for last and no store	(me.lastId)
+
+			#${'#'}		=> get my id	(me.id)
+			#${'.'}		=> get my id	(me.id) alternative
+			#${0}		=> get ids[0]	(me.ids[0])
+			#${1}		=> get ids[1]	(me.ids[1])
+			#${''}		=> get last id	(me.lastId)
 */
 /*
 	examples:
@@ -305,6 +318,8 @@ class j6tIdProvider {
 		return validation.isValidDomId(id);
 	}
 	generate(id) { util.NotImplementedException(`${this.constructor.name}.generate()`) }
+	getState() { util.NotImplementedException(`${this.constructor.name}.getState()`) }
+	setState(arg) { util.NotImplementedException(`${this.constructor.name}.setState()`) }
 }
 
 class j6tUniversalIdProvider extends j6tIdProvider {
@@ -339,6 +354,14 @@ class j6tUniversalIdProvider extends j6tIdProvider {
 		}
 		
 		return doGenerate? `${this.idPrefix}${this.counter++}`: id;
+	}
+	getState() {
+		return this.counter;
+	}
+	setState(arg) {
+		if (util.isNumeric(arg)) {
+			this.counter = parseInt(arg);
+		}
 	}
 }
 class j6tNestedIdProvider extends j6tIdProvider {
@@ -393,7 +416,11 @@ class j6tRoot {
 				}
 			});
 			
+			component.idProvider.setState(component.idProviderState);
+			
 			html = component.render();
+			
+			component.idProviderState = component.idProvider.getState();
 			
 			content.push(html);
 			
@@ -458,6 +485,8 @@ class Component {
 			this.id = reservedIdProvider.generate(this.id);
 		}
 		
+		this.idProviderState = null;
+		this.ids = [];
 		this.lastId = '';
 		this.lastOwner = null;
 		this.children = [];
@@ -656,10 +685,8 @@ class Component {
 							} else {
 								args.arg = me.id;
 							}
-						} else {
-							if (args.arg == 0) {
-								args.arg = me.id;
-							}
+						} else if (args.arg == '.') {
+							args.arg = me.id;
 						}
 					}
 					
@@ -741,8 +768,6 @@ class Component {
 		
 		let i = 0;
 		
-		me.children = [];
-		
 		while (i < literals.length) {
 			let literal = literals[i];
 			
@@ -816,15 +841,21 @@ class Component {
 						value = _evaluateExpression(i, true);
 						
 						result.push(value);
+						
 						break;
 					case '#':
 						value = _evaluateExpression(i, true);
 						
-						if (value == 0) {
+						if (value == '#' || value == '.') {
 							result.push('#' + me.id);
-						} else {
+						} else if (typeof value == 'string' && value.trim() == '') {
 							result.push('#' + me.lastId);
+						} else if (util.isNumeric(value)) {
+							result.push('#' + (me.ids[value] || ''));
+						} else {
+							result.push('#' + util.htmlEncodeToString(value));
 						}
+						
 						break;
 					case '@':
 						if (['&', '%', '.', '=', '-', '~', '/', '|'].indexOf(name) >= 0) {
@@ -910,7 +941,10 @@ class Component {
 		return result.join('');
 	}
 	render() {
-		util.NotImplementedException(`${this.constructor.name}.render()`)
+		me.children = [];
+		me.ids = [];
+		
+		return '';
 	}
 	refresh() {
 		if (jQuery('#' + this.id).length == 1) {
@@ -1259,7 +1293,13 @@ class idAttribute extends BaseAttribute {
 		}
 		
 		if (util.isSomeObject(this.container)) {
-			this.container.lastId = this.attributeValue = this.container.idProvider.generate(this.attributeValue);
+			let givenId = this.attributeValue;
+			
+			this.container.lastId = this.attributeValue = this.container.idProvider.generate(givenId);
+			
+			if (util.isNumeric(givenId)) {
+				this.container.ids[givenId] = this.attributeValue;
+			}
 		}
 	}
 }

@@ -22,8 +22,11 @@ const tags = [	'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
 				'dialog', 'dir', 'em', 'embed', 'applet', 'noframes', 'iframe', 'frame', 'frameset', 'hr', 'br', 
 				'main', 'map', 'mark', 'meter', 'map', 'noscript', 'script', 'object', 'output', 'param', 'progress', 
 				'rp', 'rt', 'ruby', 's', 'samp', 'source', 'svg', 'template', 'time', 'track', 'tt', 'var', 'wbr'
-				 // 'style' and 'dir'	these tags are ommited since we want them to have more priority as attributes <button style${...}>, <div dir${...}>
-				 // in order to force using 'style' or 'dir' as a tag, the user can leverage $style${...} or $dir${...} or define an explicit styleTag, dirTag class
+				 // 'style' and 'dir'	these tags are ommited since we want their attribute counterparts
+				 // have more priority. for example in <button style${...}>, <div dir${...}>, style and dir
+				 // must be assumed as attributes. 'style' is more prevalent than <style>.
+				 // if we want to force using 'style' or 'dir' as a tag, we can leverage $style${...} or $dir${...}
+				 // or define an explicit styleTag, dirTag class.
 			];
 const attributes = [
 		'accept', 'accept-charset', 'accesskey', 'action', 'align', 'allow', 'alt',
@@ -135,9 +138,9 @@ const attributes = [
 		id${...}, #${...} rules:
 			id${'#a'}	=> set id for me (me.id)
 			id${'#'}	=> generate id for me	(me.id)	alternate
-			id${0}		=> generate id for last and store		(me.lastId, me.ids[0])
-			id${1}		=> generate id for last and store		(me.lastId, me.ids[1])
-			id${''}		=> generate id for last and no store	(me.lastId)
+			id${0}		=> generate id for last and store at 0		(me.lastId, me.ids[0])
+			id${1}		=> generate id for last and store at 1		(me.lastId, me.ids[1])
+			id${''}		=> generate id for last and store at last	(me.lastId)
 
 			#${'#'}		=> get my id	(me.id)
 			#${'.'}		=> get my id	(me.id) alternative
@@ -145,80 +148,7 @@ const attributes = [
 			#${1}		=> get ids[1]	(me.ids[1])
 			#${''}		=> get last id	(me.lastId)
 */
-/*
-	examples:
-	<a href${'google.com'}>
-		literals:
-			0: <a href
-			1: ''
-		expressions:
-			0: 'google.com'
 
-	<a ${'href'}@${'google.com'}
-		literals:
-			0: <a 
-			1: ''
-			2: ''
-		expressions:
-			0: 'href'
-			1: 'google.com'
-
-	test @${24}
-		literals:
-			0: test @
-			1: ''
-		expressions:
-			0: 24
-
-	test hello@${24}
-		literals:
-			0: test hello@
-			1: ''
-		expressions:
-			0: 24
-
-	name= ${'ali'} ${'omrani'}
-		literals:
-			0: name= 
-			1: ''
-			2: ''
-		expressions:
-			0: 'ali'
-			1: 'omrani'
-
-	test !${'<>'}
-		literals:
-			0: test !
-			1: ''
-		expressions:
-			0: <>
-
-	test hi!${'<>'}
-		literals:
-			0: test hi!
-			1: ''
-		expressions:
-			0: <>
-
-	test @${'cmd1'} ${'arg1'}
-		literals:
-			0: test @
-			1: ' '
-			2: ''
-		expressions:
-			0: 'cmd1'
-			1: 'arg1'
-
-	test @${'cmd1'}${'arg1'}
-		literals:
-			0: test @
-			1: ''
-			2: ''
-		expressions:
-			0: 'cmd1'
-			1: 'arg1'
-
-*/
 const events = [
 		'onabort',
 		'onafterprint',
@@ -318,8 +248,9 @@ class j6tIdProvider {
 		return validation.isValidDomId(id);
 	}
 	generate(id) { util.NotImplementedException(`${this.constructor.name}.generate()`) }
-	getState() { util.NotImplementedException(`${this.constructor.name}.getState()`) }
-	setState(arg) { util.NotImplementedException(`${this.constructor.name}.setState()`) }
+	getState() { }
+	setState(arg) { }
+	restoreState() { }
 }
 
 class j6tUniversalIdProvider extends j6tIdProvider {
@@ -337,6 +268,7 @@ class j6tUniversalIdProvider extends j6tIdProvider {
 		
 		jQuery.extend(this, {
 			counter: 0,
+			preservedCounter: 0,
 			idPrefix: '_el_'
 		}, _props);
 	}
@@ -360,8 +292,12 @@ class j6tUniversalIdProvider extends j6tIdProvider {
 	}
 	setState(arg) {
 		if (util.isNumeric(arg)) {
+			this.preservedCounter = this.counter;
 			this.counter = parseInt(arg);
 		}
+	}
+	restoreState() {
+		this.counter = this.preservedCounter;
 	}
 }
 class j6tNestedIdProvider extends j6tIdProvider {
@@ -401,7 +337,7 @@ class j6tNestedIdProvider extends j6tIdProvider {
 
 class j6tRoot {
 	get version() {
-		return '1.0'
+		return '1.1'
 	}
 	render(component, target) {
 		if (component instanceof(Component) && jQuery(target).length == 1) {
@@ -416,11 +352,9 @@ class j6tRoot {
 				}
 			});
 			
-			component.idProvider.setState(component.idProviderState);
+			component.idProviderState = component.idProvider.getState();
 			
 			html = component.render();
-			
-			component.idProviderState = component.idProvider.getState();
 			
 			content.push(html);
 			
@@ -583,6 +517,59 @@ class Component {
 	validateHtml(html) {
 		return html;
 	}
+	parseCssSelector(selector) {
+		let result = '';
+		let state = 0;
+		let value = '';
+		let me = this;
+		const arr = [' ', '.', '>', ',', '[', ':', '+', '~', '\t'];
+		
+		function state1(ch, ended) {
+			if (arr.indexOf(ch) >= 0) {
+				if (util.isNumeric(value)) {
+					result += me.ids[parseInt(value)] + (ended ? '' : ch);
+					value = '';
+					state = 0;
+				} else {
+					result += value + (ended ? '' : ch);
+				}
+			} else {
+				if (ended) {
+					result += value;
+				} else {
+					value += ch;
+				}
+			}
+		}
+		
+		if (util.isSomeString(selector)) {
+			for (let i = 0; i < selector.length; i++) {
+				const ch = selector[i];
+				
+				switch (state) {
+					case 0:
+						if (ch == '#') {
+							result += ch;
+							value = '';
+							state = 1;
+						} else {
+							result += ch;
+						}
+						break;
+					case 1:
+						state1(ch, false);
+						
+						break;
+				}
+			}
+			
+			if (state == 1) {
+				state1('.', true);
+			}
+		}
+		
+		return result;
+	}
 	parse(literals, ...expressions) {
 		const me = this;
 		let result = [];
@@ -621,8 +608,12 @@ class Component {
 					}
 					
 					if (util.isFunction(x.render)) {
+						if (x.idProvider instanceof j6tIdProvider) {
+							x.idProviderState = x.idProvider.getState();
+						}
+						
 						const html = x.render();
-							
+						
 						if (html) {
 							result.push(html);
 						}
@@ -699,11 +690,11 @@ class Component {
 					break;
 				}
 				
-				if (events.indexOf(args.name) >= 0 || args.directive == '#') {
+				if ((events.indexOf(args.name) >= 0 || args.directive == '#') && me.ids.length) {
 					obj = new bindElement({
 						event: args.name,
 						container: me,
-						target: `#${me.lastId}`,
+						target: `#${me.ids[me.ids.length - 1]}`,	// me.lastId
 						handler: args.arg
 					});
 					
@@ -848,10 +839,18 @@ class Component {
 						
 						if (value == '#' || value == '.') {
 							result.push('#' + me.id);
-						} else if (typeof value == 'string' && value.trim() == '') {
-							result.push('#' + me.lastId);
-						} else if (util.isNumeric(value)) {
-							result.push('#' + (me.ids[value] || ''));
+						}
+						/*	we cannot support the following value because #{} might be called before id${}
+							in this case me.ids[me.ids.length - 1] will refer to an inocrrect id
+						else if (typeof value == 'string' && value.trim() == '') {
+							let _lastId = me.ids[me.ids.length - 1]; // me.lastId;
+							result.push(() => '#' + _lastId);
+						}
+						*/
+						else if (util.isNumeric(value)) {
+							let _value = value;				// 	we need to postpone reading me.ids[value] because ids[] are set by id${}
+															//	and id${} might be called after #${}
+							result.push(() => '#' + (me.ids[_value] || ''));
 						} else {
 							result.push('#' + util.htmlEncodeToString(value));
 						}
@@ -938,6 +937,12 @@ class Component {
 			i++;
 		}
 
+		for (let i = 0; i < result.length; i++) {
+			if (util.isFunction(result[i])) {
+				result[i] = result[i]();
+			}
+		}
+		
 		return result.join('');
 	}
 	render() {
@@ -948,7 +953,17 @@ class Component {
 	}
 	refresh() {
 		if (jQuery('#' + this.id).length == 1) {
+			const isj6tIdProvider = this.idProvider instanceof j6tIdProvider;
+			
+			if (isj6tIdProvider) {
+				this.idProvider.setState(this.idProviderState);
+			}
+			
 			const html = this.render();
+			
+			if (isj6tIdProvider) {
+				this.idProvider.restoreState();
+			}
 			
 			jQuery('#' + this.id).replaceWith(html);
 			
@@ -1022,7 +1037,9 @@ class BaseTag extends Component {
 			this.selfClose = false;
 		}
 		
-		this.lastId = this.id;
+		//this.lastId = this.id; we don't support me.lastId any more because it is problematic
+		// instead we add me.id to me.ids
+		this.ids.push(me.id);
 		this.lastOwner = this;
 		
 		if (!util.isEmpty(this.arg)) {
@@ -1033,7 +1050,7 @@ class BaseTag extends Component {
 		return validation.isValidTag(this.tagName);
 	}
 	getExcludedAttributes() {
-		return ['tagname', 'selfclose', 'lastid', 'lastowner', 'children', 'events', 'resources', 'html', 'text', 'logger', 'parent', 'arg', 'idprovider'];
+		return ['tagname', 'selfclose', 'lastid', 'ids', 'lastowner', 'children', 'events', 'resources', 'html', 'text', 'logger', 'parent', 'arg', 'idprovider'];
 	}
 	getAttributes() {
 		let result = [];
@@ -1295,11 +1312,14 @@ class idAttribute extends BaseAttribute {
 		if (util.isSomeObject(this.container)) {
 			let givenId = this.attributeValue;
 			
-			this.container.lastId = this.attributeValue = this.container.idProvider.generate(givenId);
+			this.attributeValue = this.container.idProvider.generate(givenId);
+			// this.container.lastId = this.attributeValue; we don't support me.lastId anymore
 			
 			if (util.isNumeric(givenId)) {
 				this.container.ids[givenId] = this.attributeValue;
-			}
+			} /* else if (givenId === '') {	// we don't support lastId anymore
+				this.container.ids.push(this.container.lastId);
+			}*/
 		}
 	}
 }
@@ -1417,7 +1437,7 @@ class bindElement extends BaseElement {
 			
 			if (e == undefined) {
 				this.container.events.push({
-					target: this.target,
+					target: this.container.parseCssSelector(this.target),
 					name: this.event,
 					handler: this.handler
 				});
@@ -1434,7 +1454,7 @@ export default j6tRoot;
 export {
 	j6tIdProvider,
 	j6tUniversalIdProvider,
-	j6tNestedIdProvider,
+	/*j6tNestedIdProvider,*/	// this id provider is not implemented yet.
 	Component,
 	DynamicComponent,
 	BaseElement,

@@ -40,7 +40,7 @@ exports["default"] = _default;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.bindElement = exports.styleAttribute = exports.dirAttribute = exports.idAttribute = exports.classAttribute = exports.deferAttribute = exports.asyncAttribute = exports.disabledAttribute = exports.checkedAttribute = exports.selectedAttribute = exports.BooleanAttribute = exports.BaseAttribute = exports.scriptElement = exports.scriptTag = exports.linkElement = exports.linkTag = exports.stylesTag = exports.BaseTag = exports.BaseElement = exports.DynamicComponent = exports.Component = exports.j6tNestedIdProvider = exports.j6tUniversalIdProvider = exports.j6tIdProvider = exports["default"] = void 0;
+exports.bindElement = exports.styleAttribute = exports.dirAttribute = exports.idAttribute = exports.classAttribute = exports.deferAttribute = exports.asyncAttribute = exports.disabledAttribute = exports.checkedAttribute = exports.selectedAttribute = exports.BooleanAttribute = exports.BaseAttribute = exports.scriptElement = exports.scriptTag = exports.linkElement = exports.linkTag = exports.stylesTag = exports.BaseTag = exports.BaseElement = exports.DynamicComponent = exports.Component = exports.j6tUniversalIdProvider = exports.j6tIdProvider = exports["default"] = void 0;
 
 var templateTags = _interopRequireWildcard(require("./tags.js"));
 
@@ -128,8 +128,11 @@ if (_jquery["default"] == null) {
   throw 'jQuery not present';
 }
 
-var tags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'strong', 'i', 'ins', 'pre', 'q', 'small', 'strike', 'font', 'sub', 'summary', 'sup', 'u', 'div', 'span', 'img', 'figure', 'figcaption', 'picture', 'section', 'article', 'header', 'footer', 'table', 'thead', 'th', 'tr', 'td', 'tbody', 'tfoot', 'canvas', 'video', 'audio', 'form', 'button', 'input', 'textarea', 'fieldset', 'kbd', 'label', 'legend', 'select', 'optgroup', 'option', 'ul', 'li', 'dd', 'dl', 'dt', 'ol', 'a', 'abbr', 'acronym', 'link', 'address', 'area', 'aside', 'base', 'basefont', 'bdi', 'blockquote', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'data', 'datalist', 'del', 'details', 'dfn', 'dialog', 'dir', 'em', 'embed', 'applet', 'noframes', 'iframe', 'frame', 'frameset', 'hr', 'br', 'main', 'map', 'mark', 'meter', 'map', 'noscript', 'script', 'object', 'output', 'param', 'progress', 'rp', 'rt', 'ruby', 's', 'samp', 'source', 'svg', 'template', 'time', 'track', 'tt', 'var', 'wbr' // 'style' and 'dir'	these tags are ommited since we want them to have more priority as attributes <button style${...}>, <div dir${...}>
-// in order to force using 'style' or 'dir' as a tag, the user can leverage $style${...} or $dir${...} or define an explicit styleTag, dirTag class
+var tags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'strong', 'i', 'ins', 'pre', 'q', 'small', 'strike', 'font', 'sub', 'summary', 'sup', 'u', 'div', 'span', 'img', 'figure', 'figcaption', 'picture', 'section', 'article', 'header', 'footer', 'table', 'thead', 'th', 'tr', 'td', 'tbody', 'tfoot', 'canvas', 'video', 'audio', 'form', 'button', 'input', 'textarea', 'fieldset', 'kbd', 'label', 'legend', 'select', 'optgroup', 'option', 'ul', 'li', 'dd', 'dl', 'dt', 'ol', 'a', 'abbr', 'acronym', 'link', 'address', 'area', 'aside', 'base', 'basefont', 'bdi', 'blockquote', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'data', 'datalist', 'del', 'details', 'dfn', 'dialog', 'dir', 'em', 'embed', 'applet', 'noframes', 'iframe', 'frame', 'frameset', 'hr', 'br', 'main', 'map', 'mark', 'meter', 'map', 'noscript', 'script', 'object', 'output', 'param', 'progress', 'rp', 'rt', 'ruby', 's', 'samp', 'source', 'svg', 'template', 'time', 'track', 'tt', 'var', 'wbr' // 'style' and 'dir'	these tags are ommited since we want their attribute counterparts
+// have more priority. for example in <button style${...}>, <div dir${...}>, style and dir
+// must be assumed as attributes. 'style' is more prevalent than <style>.
+// if we want to force using 'style' or 'dir' as a tag, we can leverage $style${...} or $dir${...}
+// or define an explicit styleTag, dirTag class.
 ];
 var attributes = ['accept', 'accept-charset', 'accesskey', 'action', 'align', 'allow', 'alt', 'async', 'autocapitalize', 'autocomplete', 'autofocus', 'autoplay', 'background', 'bgcolor', 'border', 'buffered', 'challenge', 'charset', 'checked', 'cite', 'code', 'codebase', 'color', 'cols', 'colspan', 'content', 'contenteditable', 'contextmenu', 'controls', 'coords', 'crossorigin', 'csp', 'data', 'datetime', 'decoding', 'default', 'defer', 'dir', 'dirname', 'disabled', 'download', 'draggable', 'dropzone', 'enctype', 'enterkeyhint', 'for', 'form', 'formaction', 'formenctype', 'formmethod', 'formnovalidate', 'formtarget', 'headers', 'height', 'hidden', 'high', 'href', 'hreflang', 'http-equiv', 'icon', 'id', 'importance', 'integrity', 'intrinsicsize', 'inputmode', 'ismap', 'itemprop', 'keytype', 'kind', 'label', 'lang', 'language', 'loading', 'list', 'loop', 'low', 'manifest', 'max', 'maxlength', 'minlength', 'media', 'method', 'min', 'multiple', 'muted', 'name', 'novalidate', 'open', 'optimum', 'pattern', 'ping', 'placeholder', 'poster', 'preload', 'radiogroup', 'readonly', 'referrerpolicy', 'rel', 'required', 'reversed', 'rows', 'rowspan', 'sandbox', 'scope', 'scoped', 'selected', 'shape', 'size', 'sizes', 'slot', 'span', 'spellcheck', 'src', 'srcdoc', 'srclang', 'srcset', 'start', 'step', 'summary', 'tabindex', 'target', 'title', 'translate', 'type', 'usemap', 'value', 'width', 'wrap'];
 /*
@@ -216,81 +219,19 @@ var attributes = ['accept', 'accept-charset', 'accesskey', 'action', 'align', 'a
 		*xd${}	hex2dec		*xd${'1c'}	=> 29
 		*xo${}	hex2oct		*xo${'1c'}	=> 35
 		*xb${}	hex2bin		*xb${'1c'}	=> 11101
-*/
+		
+		id${...}, #${...} rules:
+			id${'#a'}	=> set id for me (me.id)
+			id${'#'}	=> generate id for me	(me.id)	alternate
+			id${0}		=> generate id for last and store at 0		(me.lastId, me.ids[0])
+			id${1}		=> generate id for last and store at 1		(me.lastId, me.ids[1])
+			id${''}		=> generate id for last and store at last	(me.lastId)
 
-/*
-	examples:
-	<a href${'google.com'}>
-		literals:
-			0: <a href
-			1: ''
-		expressions:
-			0: 'google.com'
-
-	<a ${'href'}@${'google.com'}
-		literals:
-			0: <a 
-			1: ''
-			2: ''
-		expressions:
-			0: 'href'
-			1: 'google.com'
-
-	test @${24}
-		literals:
-			0: test @
-			1: ''
-		expressions:
-			0: 24
-
-	test hello@${24}
-		literals:
-			0: test hello@
-			1: ''
-		expressions:
-			0: 24
-
-	name= ${'ali'} ${'omrani'}
-		literals:
-			0: name= 
-			1: ''
-			2: ''
-		expressions:
-			0: 'ali'
-			1: 'omrani'
-
-	test !${'<>'}
-		literals:
-			0: test !
-			1: ''
-		expressions:
-			0: <>
-
-	test hi!${'<>'}
-		literals:
-			0: test hi!
-			1: ''
-		expressions:
-			0: <>
-
-	test @${'cmd1'} ${'arg1'}
-		literals:
-			0: test @
-			1: ' '
-			2: ''
-		expressions:
-			0: 'cmd1'
-			1: 'arg1'
-
-	test @${'cmd1'}${'arg1'}
-		literals:
-			0: test @
-			1: ''
-			2: ''
-		expressions:
-			0: 'cmd1'
-			1: 'arg1'
-
+			#${'#'}		=> get my id	(me.id)
+			#${'.'}		=> get my id	(me.id) alternative
+			#${0}		=> get ids[0]	(me.ids[0])
+			#${1}		=> get ids[1]	(me.ids[1])
+			#${''}		=> get last id	(me.lastId)
 */
 
 var events = ['onabort', 'onafterprint', 'onbeforeprint', 'onbeforeunload', 'onblur', 'oncanplay', 'oncanplaythrough', 'onchange', 'onclick', 'oncontextmenu', 'oncopy', 'oncuechange', 'oncut', 'ondblclick', 'ondrag', 'ondragend', 'ondragenter', 'ondragleave', 'ondragover', 'ondragstart', 'ondrop', 'ondurationchange', 'onemptied', 'onended', 'onerror', 'onfocus', 'onhashchange', 'oninput', 'oninvalid', 'onkeydown', 'onkeypress', 'onkeyup', 'onload', 'onloadeddata', 'onloadedmetadata', 'onloadstart', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onmousewheel', 'onoffline', 'ononline', 'onpagehide', 'onpageshow', 'onpaste', 'onpause', 'onplay', 'onplaying', 'onpopstate', 'onprogress', 'onratechange', 'onreset', 'onresize', 'onscroll', 'onsearch', 'onseeked', 'onseeking', 'onselect', 'onstalled', 'onstorage', 'onsubmit', 'onsuspend', 'ontimeupdate', 'ontoggle', 'onunload', 'onvolumechange', 'onwaiting', 'onwheel'];
@@ -353,6 +294,15 @@ function () {
     value: function generate(id) {
       util.NotImplementedException("".concat(this.constructor.name, ".generate()"));
     }
+  }, {
+    key: "getState",
+    value: function getState() {}
+  }, {
+    key: "setState",
+    value: function setState(arg) {}
+  }, {
+    key: "restoreState",
+    value: function restoreState() {}
   }]);
 
   return j6tIdProvider;
@@ -393,6 +343,7 @@ function (_j6tIdProvider) {
 
     _jquery["default"].extend(_assertThisInitialized(_this), {
       counter: 0,
+      preservedCounter: 0,
       idPrefix: '_el_'
     }, _props);
 
@@ -415,6 +366,24 @@ function (_j6tIdProvider) {
       }
 
       return doGenerate ? "".concat(this.idPrefix).concat(this.counter++) : id;
+    }
+  }, {
+    key: "getState",
+    value: function getState() {
+      return this.counter;
+    }
+  }, {
+    key: "setState",
+    value: function setState(arg) {
+      if (util.isNumeric(arg)) {
+        this.preservedCounter = this.counter;
+        this.counter = parseInt(arg);
+      }
+    }
+  }, {
+    key: "restoreState",
+    value: function restoreState() {
+      this.counter = this.preservedCounter;
     }
   }]);
 
@@ -488,8 +457,6 @@ function (_j6tIdProvider2) {
   return j6tNestedIdProvider;
 }(j6tIdProvider);
 
-exports.j6tNestedIdProvider = j6tNestedIdProvider;
-
 var j6tRoot =
 /*#__PURE__*/
 function () {
@@ -510,6 +477,7 @@ function () {
             link.applied = true;
           }
         });
+        component.idProviderState = component.idProvider.getState();
         html = component.render();
         content.push(html);
         Component.scripts.forEach(function (script) {
@@ -583,6 +551,8 @@ function () {
       this.id = reservedIdProvider.generate(this.id);
     }
 
+    this.idProviderState = null;
+    this.ids = [];
     this.lastId = '';
     this.lastOwner = null;
     this.children = [];
@@ -707,6 +677,62 @@ function () {
       return html;
     }
   }, {
+    key: "parseCssSelector",
+    value: function parseCssSelector(selector) {
+      var result = '';
+      var state = 0;
+      var value = '';
+      var me = this;
+      var arr = [' ', '.', '>', ',', '[', ':', '+', '~', '\t'];
+
+      function state1(ch, ended) {
+        if (arr.indexOf(ch) >= 0) {
+          if (util.isNumeric(value)) {
+            result += me.ids[parseInt(value)] + (ended ? '' : ch);
+            value = '';
+            state = 0;
+          } else {
+            result += value + (ended ? '' : ch);
+          }
+        } else {
+          if (ended) {
+            result += value;
+          } else {
+            value += ch;
+          }
+        }
+      }
+
+      if (util.isSomeString(selector)) {
+        for (var i = 0; i < selector.length; i++) {
+          var ch = selector[i];
+
+          switch (state) {
+            case 0:
+              if (ch == '#') {
+                result += ch;
+                value = '';
+                state = 1;
+              } else {
+                result += ch;
+              }
+
+              break;
+
+            case 1:
+              state1(ch, false);
+              break;
+          }
+        }
+
+        if (state == 1) {
+          state1('.', true);
+        }
+      }
+
+      return result;
+    }
+  }, {
     key: "parse",
     value: function parse(literals) {
       for (var _len = arguments.length, expressions = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -749,6 +775,10 @@ function () {
             }
 
             if (util.isFunction(x.render)) {
+              if (x.idProvider instanceof j6tIdProvider) {
+                x.idProviderState = x.idProvider.getState();
+              }
+
               var html = x.render();
 
               if (html) {
@@ -806,12 +836,14 @@ function () {
 
             if (args.name == 'id') {
               if (util.isSomeString(args.arg) && args.arg[0] == '#') {
-                currentIdIsForMe = true;
-                args.arg = args.arg.substr(1);
-              } else {
-                if (args.arg == 0) {
+                if (args.arg.length > 1) {
+                  currentIdIsForMe = true;
+                  args.arg = args.arg.substr(1);
+                } else {
                   args.arg = me.id;
                 }
+              } else if (args.arg == '.') {
+                args.arg = me.id;
               }
             }
 
@@ -824,11 +856,12 @@ function () {
             break;
           }
 
-          if (events.indexOf(args.name) >= 0 || args.directive == '#') {
+          if ((events.indexOf(args.name) >= 0 || args.directive == '#') && me.ids.length) {
             obj = new bindElement({
               event: args.name,
               container: me,
-              target: "#".concat(me.lastId),
+              target: "#".concat(me.ids[me.ids.length - 1]),
+              // me.lastId
               handler: args.arg
             });
             break;
@@ -908,7 +941,6 @@ function () {
       }
 
       var i = 0;
-      me.children = [];
 
       while (i < literals.length) {
         var literal = literals[i];
@@ -983,11 +1015,28 @@ function () {
             case '#':
               value = _evaluateExpression(i, true);
 
-              if (value == 0) {
+              if (value == '#' || value == '.') {
                 result.push('#' + me.id);
-              } else {
-                result.push('#' + me.lastId);
               }
+              /*	we cannot support the following value because #{} might be called before id${}
+              	in this case me.ids[me.ids.length - 1] will refer to an inocrrect id
+              else if (typeof value == 'string' && value.trim() == '') {
+              	let _lastId = me.ids[me.ids.length - 1]; // me.lastId;
+              	result.push(() => '#' + _lastId);
+              }
+              */
+              else if (util.isNumeric(value)) {
+                  (function () {
+                    var _value = value; // 	we need to postpone reading me.ids[value] because ids[] are set by id${}
+                    //	and id${} might be called after #${}
+
+                    result.push(function () {
+                      return '#' + (me.ids[_value] || '');
+                    });
+                  })();
+                } else {
+                  result.push('#' + util.htmlEncodeToString(value));
+                }
 
               break;
 
@@ -1078,18 +1127,37 @@ function () {
         i++;
       }
 
+      for (var _i = 0; _i < result.length; _i++) {
+        if (util.isFunction(result[_i])) {
+          result[_i] = result[_i]();
+        }
+      }
+
       return result.join('');
     }
   }, {
     key: "render",
     value: function render() {
-      util.NotImplementedException("".concat(this.constructor.name, ".render()"));
+      me.children = [];
+      me.ids = [];
+      return '';
     }
   }, {
     key: "refresh",
     value: function refresh() {
       if ((0, _jquery["default"])('#' + this.id).length == 1) {
+        var isj6tIdProvider = this.idProvider instanceof j6tIdProvider;
+
+        if (isj6tIdProvider) {
+          this.idProvider.setState(this.idProviderState);
+        }
+
         var html = this.render();
+
+        if (isj6tIdProvider) {
+          this.idProvider.restoreState();
+        }
+
         (0, _jquery["default"])('#' + this.id).replaceWith(html);
         this.bindEvents();
       }
@@ -1210,9 +1278,12 @@ function (_Component2) {
 
     if (!util.isBool(_this4.selfClose)) {
       _this4.selfClose = false;
-    }
+    } //this.lastId = this.id; we don't support me.lastId any more because it is problematic
+    // instead we add me.id to me.ids
 
-    _this4.lastId = _this4.id;
+
+    _this4.ids.push(me.id);
+
     _this4.lastOwner = _assertThisInitialized(_this4);
 
     if (!util.isEmpty(_this4.arg)) {
@@ -1230,7 +1301,7 @@ function (_Component2) {
   }, {
     key: "getExcludedAttributes",
     value: function getExcludedAttributes() {
-      return ['tagname', 'selfclose', 'lastid', 'lastowner', 'children', 'events', 'resources', 'html', 'text', 'logger', 'parent', 'arg', 'idprovider'];
+      return ['tagname', 'selfclose', 'lastid', 'ids', 'lastowner', 'children', 'events', 'resources', 'html', 'text', 'logger', 'parent', 'arg', 'idprovider'];
     }
   }, {
     key: "getAttributes",
@@ -1254,16 +1325,16 @@ function (_Component2) {
     key: "render",
     value: function render() {
       if (this.isValid()) {
-        var me = this;
+        var _me = this;
 
         if (this.selfClose) {
-          return me.parse(_templateObject(), me.tagName, me.getAttributes(), function (prop) {
-            return me.parse(_templateObject2(), prop, me[prop]);
+          return _me.parse(_templateObject(), _me.tagName, _me.getAttributes(), function (prop) {
+            return _me.parse(_templateObject2(), prop, _me[prop]);
           });
         } else {
-          return me.parse(_templateObject3(), me.tagName, me.getAttributes(), function (prop) {
-            return me.parse(_templateObject4(), prop, me[prop]);
-          }, me.validateText(me.text), me.validateHtml(me.html), me.tagName);
+          return _me.parse(_templateObject3(), _me.tagName, _me.getAttributes(), function (prop) {
+            return _me.parse(_templateObject4(), prop, _me[prop]);
+          }, _me.validateText(_me.text), _me.validateHtml(_me.html), _me.tagName);
         }
       } else {
         return '';
@@ -1708,7 +1779,16 @@ function (_BaseAttribute3) {
     }
 
     if (util.isSomeObject(_this14.container)) {
-      _this14.container.lastId = _this14.attributeValue = _this14.container.idProvider.generate(_this14.attributeValue);
+      var givenId = _this14.attributeValue;
+      _this14.attributeValue = _this14.container.idProvider.generate(givenId); // this.container.lastId = this.attributeValue; we don't support me.lastId anymore
+
+      if (util.isNumeric(givenId)) {
+        _this14.container.ids[givenId] = _this14.attributeValue;
+      }
+      /* else if (givenId === '') {	// we don't support lastId anymore
+      this.container.ids.push(this.container.lastId);
+      }*/
+
     }
 
     return _this14;
@@ -1874,7 +1954,7 @@ function (_BaseElement2) {
 
         if (e == undefined) {
           this.container.events.push({
-            target: this.target,
+            target: this.container.parseCssSelector(this.target),
             name: this.event,
             handler: this.handler
           });

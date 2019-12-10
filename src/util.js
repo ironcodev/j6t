@@ -1,3 +1,5 @@
+import jQuery from './jquery.js'
+
 const getEl			= (x) => document && document.querySelector ? document.querySelector(x) : undefined;
 const getEls		= (x) => document && document.querySelectorAll ? document.querySelectorAll(x) : undefined;
 const toStr			= (x) => (x || '').toString();
@@ -61,6 +63,10 @@ const NotImplementedException = function (x) {
 	}
 }
 
+/* warning: the following function may not work correctly in all browsers, situations and scenarios
+			because function.caller is deprecated based on ECMAScript standard.
+			this function is not used anywhere in j6t.
+*/
 const isPureFunction = (fn) => {
 	let result = false;
 	
@@ -73,6 +79,10 @@ const isPureFunction = (fn) => {
 	
 	return result;
 }
+/* warning: the following function may not work correctly in all browsers, situations and scenarios
+			because it is based on the deprecated isPureFunction().
+			this function is not used anywhere in j6t.
+*/
 const isClass = x => !isPureFunction(x) && x.prototype != undefined;
 const deepAssign = function (target, ...sources) {	// source: https://stackoverflow.com/questions/38345937/object-assign-vs-extend
   if (!sources.length) {
@@ -85,12 +95,12 @@ const deepAssign = function (target, ...sources) {	// source: https://stackoverf
 	for (const key in source) {
 		if (isObject(source[key])) {
 			if (!target[key]) {
-				Object.assign(target, { [key]: {} });
+				jQuery.extend(target, { [key]: {} });
 			}
 			
 			deepAssign(target[key], source[key]);
 		} else {
-			Object.assign(target, { [key]: source[key] });
+			jQuery.extend(target, { [key]: source[key] });
 		}
 	}
   }

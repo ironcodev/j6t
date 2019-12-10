@@ -62,8 +62,6 @@ const attributes = [
 		dir: 'ltr', 'rtl'
 	
 	when detecting a xxx${value} here is our rules:
-		if (xxx contains '-', ':' or '.', replace them with ''.
-		
 		0. is there a function/class named xxxClass or xxxElement && xxx has a render() method ?
 				instantiate from the function/class and pass value to its ctor. xxx is assumed case-sensitive.
 		1. is there a function/class named xxxTag ?
@@ -346,6 +344,7 @@ class j6tRoot {
 			
 			Component.links.forEach(link => {
 				if (!link.applied) {
+					link.element.preRender();
 					html = link.element.render();
 					content.push(html);
 					link.applied = true;
@@ -354,12 +353,15 @@ class j6tRoot {
 			
 			component.idProviderState = component.idProvider.getState();
 			
+			component.preRender();
+			
 			html = component.render();
 			
 			content.push(html);
 			
 			Component.scripts.forEach(script => {
 				if (!script.applied) {
+					script.element.preRender();
 					html = script.element.render();
 					content.push(html);
 					script.applied = true;
@@ -375,7 +377,7 @@ class j6tRoot {
 
 class Component {
 	constructor(props) {
-		Object.assign(this, (util.isSomeObject(props) ? props: { arg: props }));
+		jQuery.extend(this, (util.isSomeObject(props) ? props: { arg: props }));
 		
 		if (!(this.logger instanceof(BaseLogger))) {
 			if (util.isSomeObject(this.parent) && this.parent.logger instanceof(BaseLogger)) {
@@ -421,7 +423,8 @@ class Component {
 		
 		this.idProviderState = null;
 		this.ids = [];
-		this.lastId = '';
+		this.lastId = '';	// not used anymore
+		this.hasWrapper = false;
 		this.lastOwner = null;
 		this.children = [];
 		this.events = [];		/*	item structure:
@@ -612,6 +615,10 @@ class Component {
 							x.idProviderState = x.idProvider.getState();
 						}
 						
+						if (util.isFunction(x.preRender)) {
+							x.preRender();
+						}
+						
 						const html = x.render();
 						
 						if (html) {
@@ -632,6 +639,8 @@ class Component {
 			}
 			
 			let obj;
+			let dynamicRender = '';
+			let props;
 			
 			do {
 				if (!validation.isValidId(args.name)) {
@@ -640,7 +649,7 @@ class Component {
 					break;
 				}
 				
-				let props = util.isSomeObject(args.arg) ? { ...args.arg } : { arg: args.arg };
+				props = util.isSomeObject(args.arg) ? { ...args.arg } : { arg: args.arg };
 				
 				if (args.name == 'bind') {
 					props.container = me;
@@ -651,16 +660,22 @@ class Component {
 				if (_check(`util.isFunction(${args.name})`)) {
 					obj = _create(`new ${args.name}(props)`, props);
 					
+					dynamicRender = args.name;
+					
 					break;
 				}
 				if (_check(`util.isFunction(${args.name}Element)`)) {
 					obj = _create(`new ${args.name}Element(props)`, props);
+					
+					dynamicRender = `${args.name}Element`;
 					
 					break;
 				}
 				
 				if (_check(`util.isFunction(${args.name}Tag)`)) {
 					obj = _create(`new ${args.name}Tag(props)`, props);
+					
+					dynamicRender = `${args.name}Tag`;
 					
 					break;
 				}
@@ -675,6 +690,7 @@ class Component {
 								args.arg = args.arg.substr(1);
 							} else {
 								args.arg = me.id;
+								me.hasWrapper = true;
 							}
 						} else if (args.arg == '.') {
 							args.arg = me.id;
@@ -683,8 +699,12 @@ class Component {
 					
 					obj = _create(`new ${args.name}Attribute({ attributeName: '${args.name}', attributeValue: args.arg, container: me })`, null, true);
 					
-					if (currentIdIsForMe) {
-						me.id = obj.attributeValue;
+					dynamicRender = `${args.name}Attribute`;
+					
+					if (util.isSomeObject(obj)) {
+						if (currentIdIsForMe) {
+							me.id = obj.attributeValue;
+						}
 					}
 					
 					break;
@@ -717,6 +737,14 @@ class Component {
 					obj = new BaseAttribute({ attributeName: args.name, attributeValue: args.arg, container: me });
 				}
 			} while (false);
+			
+			if (!util.isSomeObject(obj) && util.isSomeString(dynamicRender)) {
+				obj = _create(`new dynamicRender(props)`, props);
+				
+				if (util.isSomeObject(obj)) {
+					eval(`obj.render = ${dynamicRender}`);
+				}
+			}
 			
 			_render(obj);
 		}
@@ -943,12 +971,18 @@ class Component {
 			}
 		}
 		
+		if (!me.hasWrapper) {
+			result.splice(0, 0, `<div id="${me.id}">`);
+			result.push(`</div>`);
+		}
+		
 		return result.join('');
 	}
+	preRender() {
+		this.children = [];
+		this.ids = [];
+	}
 	render() {
-		me.children = [];
-		me.ids = [];
-		
 		return '';
 	}
 	refresh() {
@@ -958,6 +992,8 @@ class Component {
 			if (isj6tIdProvider) {
 				this.idProvider.setState(this.idProviderState);
 			}
+			
+			this.preRender();
 			
 			const html = this.render();
 			
@@ -1000,21 +1036,14 @@ Component.scripts = [];	/*	structure
 Component.imports = [];
 
 // --------------------------- Tags (start) -------------------------
-class DynamicComponent extends Component {
+class dynamicRender extends Component {
 	constructor(props) {
 		super(props);
-		
-		if (!util.isFunction(this._render)) {
-			this._render = function(){ return '' }
-		}
-	}
-	render() {
-		return this._render(this);
 	}
 }
 class BaseElement {
 	constructor(props) {
-		Object.assign(this, util.isSomeObject(props) ? props : {});
+		jQuery.extend(this, util.isSomeObject(props) ? props : {});
 	}
 	render() {
 		util.NotImplementedException(`${this.constructor.name}.render()`)
@@ -1067,6 +1096,11 @@ class BaseTag extends Component {
 		});
 		
 		return result;
+	}
+	preRender() {
+		this.children = [];
+		this.ids = [];
+		this.ids.push(me.id);
 	}
 	render() {
 		if (this.isValid()) {
@@ -1456,7 +1490,7 @@ export {
 	j6tUniversalIdProvider,
 	/*j6tNestedIdProvider,*/	// this id provider is not implemented yet.
 	Component,
-	DynamicComponent,
+	dynamicRender,
 	BaseElement,
 	BaseTag,
 	stylesTag,

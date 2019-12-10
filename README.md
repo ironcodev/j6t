@@ -185,7 +185,10 @@ class Button extends j6t.Component {
                 ${text}
             </button>
             <script>
-                document.getElementById('#${0}')
+                const btn = document.getElementById('#${0}');
+                btn.onclick = function() {
+                    alert('Hello World from j6t!');
+                }
             </script>
             `
     }

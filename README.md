@@ -196,6 +196,24 @@ class Button extends j6t.Component {
 ```
 Dynamic ids is important when creating reusable components. If you specify a fixed or static id for your component its id might collide with another element which has the same id.
 
+### events
+If you specify an id using id${...}, you can then specify event handlers using xxx${callback} where xxx is the event name and callback is your event handler function. This simplifies defining events.
+
+```javascript
+class Button extends j6t.Component {
+    ...
+    btnClicked(e) {
+        alert('Hello World from j6t!');
+    }
+    render() {
+        ...
+        return this.parse`
+            <button id${0} onclick${this.btnClicked}>
+                ${text}
+            </button>`
+    }
+}
+```
 
 
 

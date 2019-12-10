@@ -40,7 +40,7 @@ exports["default"] = _default;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.bindElement = exports.styleAttribute = exports.dirAttribute = exports.idAttribute = exports.classAttribute = exports.deferAttribute = exports.asyncAttribute = exports.disabledAttribute = exports.checkedAttribute = exports.selectedAttribute = exports.BooleanAttribute = exports.BaseAttribute = exports.scriptElement = exports.scriptTag = exports.linkElement = exports.linkTag = exports.stylesTag = exports.BaseTag = exports.BaseElement = exports.DynamicComponent = exports.Component = exports.j6tUniversalIdProvider = exports.j6tIdProvider = exports["default"] = void 0;
+exports.bindElement = exports.styleAttribute = exports.dirAttribute = exports.idAttribute = exports.classAttribute = exports.deferAttribute = exports.asyncAttribute = exports.disabledAttribute = exports.checkedAttribute = exports.selectedAttribute = exports.BooleanAttribute = exports.BaseAttribute = exports.scriptElement = exports.scriptTag = exports.linkElement = exports.linkTag = exports.stylesTag = exports.BaseTag = exports.BaseElement = exports.dynamicRender = exports.Component = exports.j6tUniversalIdProvider = exports.j6tIdProvider = exports["default"] = void 0;
 
 var templateTags = _interopRequireWildcard(require("./tags.js"));
 
@@ -147,8 +147,6 @@ var attributes = ['accept', 'accept-charset', 'accesskey', 'action', 'align', 'a
 		dir: 'ltr', 'rtl'
 	
 	when detecting a xxx${value} here is our rules:
-		if (xxx contains '-', ':' or '.', replace them with ''.
-		
 		0. is there a function/class named xxxClass or xxxElement && xxx has a render() method ?
 				instantiate from the function/class and pass value to its ctor. xxx is assumed case-sensitive.
 		1. is there a function/class named xxxTag ?
@@ -472,16 +470,19 @@ function () {
         var html = '';
         Component.links.forEach(function (link) {
           if (!link.applied) {
+            link.element.preRender();
             html = link.element.render();
             content.push(html);
             link.applied = true;
           }
         });
         component.idProviderState = component.idProvider.getState();
+        component.preRender();
         html = component.render();
         content.push(html);
         Component.scripts.forEach(function (script) {
           if (!script.applied) {
+            script.element.preRender();
             html = script.element.render();
             content.push(html);
             script.applied = true;
@@ -494,7 +495,7 @@ function () {
   }, {
     key: "version",
     get: function get() {
-      return '1.0';
+      return '1.1';
     }
   }]);
 
@@ -507,7 +508,7 @@ function () {
   function Component(props) {
     _classCallCheck(this, Component);
 
-    Object.assign(this, util.isSomeObject(props) ? props : {
+    _jquery["default"].extend(this, util.isSomeObject(props) ? props : {
       arg: props
     });
 
@@ -553,7 +554,9 @@ function () {
 
     this.idProviderState = null;
     this.ids = [];
-    this.lastId = '';
+    this.lastId = ''; // not used anymore
+
+    this.hasWrapper = false;
     this.lastOwner = null;
     this.children = [];
     this.events = [];
@@ -779,6 +782,10 @@ function () {
                 x.idProviderState = x.idProvider.getState();
               }
 
+              if (util.isFunction(x.preRender)) {
+                x.preRender();
+              }
+
               var html = x.render();
 
               if (html) {
@@ -799,6 +806,8 @@ function () {
         }
 
         var obj;
+        var dynamicRender = '';
+        var props;
 
         do {
           if (!validation.isValidId(args.name)) {
@@ -806,28 +815,31 @@ function () {
             break;
           }
 
-          var _props2 = util.isSomeObject(args.arg) ? _objectSpread({}, args.arg) : {
+          props = util.isSomeObject(args.arg) ? _objectSpread({}, args.arg) : {
             arg: args.arg
           };
 
           if (args.name == 'bind') {
-            _props2.container = me;
+            props.container = me;
           } else {
-            _props2.parent = me;
+            props.parent = me;
           }
 
           if (_check("util.isFunction(".concat(args.name, ")"))) {
-            obj = _create("new ".concat(args.name, "(props)"), _props2);
+            obj = _create("new ".concat(args.name, "(props)"), props);
+            dynamicRender = args.name;
             break;
           }
 
           if (_check("util.isFunction(".concat(args.name, "Element)"))) {
-            obj = _create("new ".concat(args.name, "Element(props)"), _props2);
+            obj = _create("new ".concat(args.name, "Element(props)"), props);
+            dynamicRender = "".concat(args.name, "Element");
             break;
           }
 
           if (_check("util.isFunction(".concat(args.name, "Tag)"))) {
-            obj = _create("new ".concat(args.name, "Tag(props)"), _props2);
+            obj = _create("new ".concat(args.name, "Tag(props)"), props);
+            dynamicRender = "".concat(args.name, "Tag");
             break;
           }
 
@@ -841,6 +853,7 @@ function () {
                   args.arg = args.arg.substr(1);
                 } else {
                   args.arg = me.id;
+                  me.hasWrapper = true;
                 }
               } else if (args.arg == '.') {
                 args.arg = me.id;
@@ -848,9 +861,12 @@ function () {
             }
 
             obj = _create("new ".concat(args.name, "Attribute({ attributeName: '").concat(args.name, "', attributeValue: args.arg, container: me })"), null, true);
+            dynamicRender = "".concat(args.name, "Attribute");
 
-            if (currentIdIsForMe) {
-              me.id = obj.attributeValue;
+            if (util.isSomeObject(obj)) {
+              if (currentIdIsForMe) {
+                me.id = obj.attributeValue;
+              }
             }
 
             break;
@@ -877,7 +893,7 @@ function () {
             } else {
               obj = new BaseTag(_objectSpread({
                 tagName: args.name
-              }, _props2));
+              }, props));
             }
 
             break;
@@ -886,7 +902,7 @@ function () {
           if (args.directive == '$') {
             obj = new BaseTag(_objectSpread({
               tagName: args.name
-            }, _props2));
+            }, props));
           } else {
             obj = new BaseAttribute({
               attributeName: args.name,
@@ -895,6 +911,14 @@ function () {
             });
           }
         } while (false);
+
+        if (!util.isSomeObject(obj) && util.isSomeString(dynamicRender)) {
+          obj = _create("new dynamicRender(props)", props);
+
+          if (util.isSomeObject(obj)) {
+            eval("obj.render = ".concat(dynamicRender));
+          }
+        }
 
         _render(obj);
       }
@@ -1133,13 +1157,22 @@ function () {
         }
       }
 
+      if (!me.hasWrapper) {
+        result.splice(0, 0, "<div id=\"".concat(me.id, "\">"));
+        result.push("</div>");
+      }
+
       return result.join('');
+    }
+  }, {
+    key: "preRender",
+    value: function preRender() {
+      this.children = [];
+      this.ids = [];
     }
   }, {
     key: "render",
     value: function render() {
-      me.children = [];
-      me.ids = [];
       return '';
     }
   }, {
@@ -1152,6 +1185,7 @@ function () {
           this.idProvider.setState(this.idProviderState);
         }
 
+        this.preRender();
         var html = this.render();
 
         if (isj6tIdProvider) {
@@ -1200,38 +1234,21 @@ applied: bool	whether this script was added to page or not
 
 Component.imports = []; // --------------------------- Tags (start) -------------------------
 
-var DynamicComponent =
+var dynamicRender =
 /*#__PURE__*/
 function (_Component) {
-  _inherits(DynamicComponent, _Component);
+  _inherits(dynamicRender, _Component);
 
-  function DynamicComponent(props) {
-    var _this3;
+  function dynamicRender(props) {
+    _classCallCheck(this, dynamicRender);
 
-    _classCallCheck(this, DynamicComponent);
-
-    _this3 = _possibleConstructorReturn(this, _getPrototypeOf(DynamicComponent).call(this, props));
-
-    if (!util.isFunction(_this3._render)) {
-      _this3._render = function () {
-        return '';
-      };
-    }
-
-    return _this3;
+    return _possibleConstructorReturn(this, _getPrototypeOf(dynamicRender).call(this, props));
   }
 
-  _createClass(DynamicComponent, [{
-    key: "render",
-    value: function render() {
-      return this._render(this);
-    }
-  }]);
-
-  return DynamicComponent;
+  return dynamicRender;
 }(Component);
 
-exports.DynamicComponent = DynamicComponent;
+exports.dynamicRender = dynamicRender;
 
 var BaseElement =
 /*#__PURE__*/
@@ -1239,7 +1256,7 @@ function () {
   function BaseElement(props) {
     _classCallCheck(this, BaseElement);
 
-    Object.assign(this, util.isSomeObject(props) ? props : {});
+    _jquery["default"].extend(this, util.isSomeObject(props) ? props : {});
   }
 
   _createClass(BaseElement, [{
@@ -1260,11 +1277,11 @@ function (_Component2) {
   _inherits(BaseTag, _Component2);
 
   function BaseTag(props) {
-    var _this4;
+    var _this3;
 
     _classCallCheck(this, BaseTag);
 
-    _this4 = _possibleConstructorReturn(this, _getPrototypeOf(BaseTag).call(this, props));
+    _this3 = _possibleConstructorReturn(this, _getPrototypeOf(BaseTag).call(this, props));
     /* structure:
     {
     tagName: string,
@@ -1272,25 +1289,25 @@ function (_Component2) {
     }
     */
 
-    if (!util.isSomeString(_this4.tagName) && util.isSomeString(props)) {
-      _this4.tagName = props;
+    if (!util.isSomeString(_this3.tagName) && util.isSomeString(props)) {
+      _this3.tagName = props;
     }
 
-    if (!util.isBool(_this4.selfClose)) {
-      _this4.selfClose = false;
+    if (!util.isBool(_this3.selfClose)) {
+      _this3.selfClose = false;
     } //this.lastId = this.id; we don't support me.lastId any more because it is problematic
     // instead we add me.id to me.ids
 
 
-    _this4.ids.push(me.id);
+    _this3.ids.push(me.id);
 
-    _this4.lastOwner = _assertThisInitialized(_this4);
+    _this3.lastOwner = _assertThisInitialized(_this3);
 
-    if (!util.isEmpty(_this4.arg)) {
-      _this4.html = _this4.arg;
+    if (!util.isEmpty(_this3.arg)) {
+      _this3.html = _this3.arg;
     }
 
-    return _this4;
+    return _this3;
   }
 
   _createClass(BaseTag, [{
@@ -1320,6 +1337,13 @@ function (_Component2) {
       });
 
       return result;
+    }
+  }, {
+    key: "preRender",
+    value: function preRender() {
+      this.children = [];
+      this.ids = [];
+      this.ids.push(me.id);
     }
   }, {
     key: "render",
@@ -1382,7 +1406,7 @@ function (_BaseTag2) {
   _inherits(linkTag, _BaseTag2);
 
   function linkTag(props) {
-    var _this5;
+    var _this4;
 
     _classCallCheck(this, linkTag);
 
@@ -1395,20 +1419,20 @@ function (_BaseTag2) {
       _props.href = props;
     }
 
-    _this5 = _possibleConstructorReturn(this, _getPrototypeOf(linkTag).call(this, _props));
-    _this5.href = util.isSomeString(_this5.href) ? _this5.href : '';
+    _this4 = _possibleConstructorReturn(this, _getPrototypeOf(linkTag).call(this, _props));
+    _this4.href = util.isSomeString(_this4.href) ? _this4.href : '';
 
-    if (util.left(_this5.href, 4).toLowerCase() == '.css') {
-      if (util.isEmpty(_this5.rel)) {
-        _this5.rel = 'stylesheet';
+    if (util.left(_this4.href, 4).toLowerCase() == '.css') {
+      if (util.isEmpty(_this4.rel)) {
+        _this4.rel = 'stylesheet';
       }
 
-      if (util.isEmpty(_this5.type)) {
-        _this5.type = 'text/css';
+      if (util.isEmpty(_this4.type)) {
+        _this4.type = 'text/css';
       }
     }
 
-    return _this5;
+    return _this4;
   }
 
   return linkTag;
@@ -1473,7 +1497,7 @@ function (_BaseTag3) {
   _inherits(scriptTag, _BaseTag3);
 
   function scriptTag(props) {
-    var _this6;
+    var _this5;
 
     _classCallCheck(this, scriptTag);
 
@@ -1485,20 +1509,20 @@ function (_BaseTag3) {
       _props.src = props;
     }
 
-    _this6 = _possibleConstructorReturn(this, _getPrototypeOf(scriptTag).call(this, _props));
-    _this6.src = util.isSomeString(_this6.src) ? _this6.src : '';
+    _this5 = _possibleConstructorReturn(this, _getPrototypeOf(scriptTag).call(this, _props));
+    _this5.src = util.isSomeString(_this5.src) ? _this5.src : '';
 
-    if (util.left(_this6.src, 3).toLowerCase() == '.js') {
-      if (util.isEmpty(_this6.type)) {
-        _this6.type = 'text/javascript';
+    if (util.left(_this5.src, 3).toLowerCase() == '.js') {
+      if (util.isEmpty(_this5.type)) {
+        _this5.type = 'text/javascript';
       }
-    } else if (util.left(_this6.src, 5).toLowerCase() == '.json') {
-      if (util.isEmpty(_this6.type)) {
-        _this6.type = 'application/json';
+    } else if (util.left(_this5.src, 5).toLowerCase() == '.json') {
+      if (util.isEmpty(_this5.type)) {
+        _this5.type = 'application/json';
       }
     }
 
-    return _this6;
+    return _this5;
   }
 
   return scriptTag;
@@ -1622,13 +1646,13 @@ function (_BaseAttribute) {
   _inherits(BooleanAttribute, _BaseAttribute);
 
   function BooleanAttribute(props) {
-    var _this7;
+    var _this6;
 
     _classCallCheck(this, BooleanAttribute);
 
-    _this7 = _possibleConstructorReturn(this, _getPrototypeOf(BooleanAttribute).call(this, props));
-    _this7.standAlone = true;
-    return _this7;
+    _this6 = _possibleConstructorReturn(this, _getPrototypeOf(BooleanAttribute).call(this, props));
+    _this6.standAlone = true;
+    return _this6;
   }
 
   return BooleanAttribute;
@@ -1642,13 +1666,13 @@ function (_BooleanAttribute) {
   _inherits(selectedAttribute, _BooleanAttribute);
 
   function selectedAttribute(props) {
-    var _this8;
+    var _this7;
 
     _classCallCheck(this, selectedAttribute);
 
-    _this8 = _possibleConstructorReturn(this, _getPrototypeOf(selectedAttribute).call(this, props));
-    _this8.attributeName = 'selected';
-    return _this8;
+    _this7 = _possibleConstructorReturn(this, _getPrototypeOf(selectedAttribute).call(this, props));
+    _this7.attributeName = 'selected';
+    return _this7;
   }
 
   return selectedAttribute;
@@ -1662,13 +1686,13 @@ function (_BooleanAttribute2) {
   _inherits(checkedAttribute, _BooleanAttribute2);
 
   function checkedAttribute() {
-    var _this9;
+    var _this8;
 
     _classCallCheck(this, checkedAttribute);
 
-    _this9 = _possibleConstructorReturn(this, _getPrototypeOf(checkedAttribute).call(this, props));
-    _this9.attributeName = 'checked';
-    return _this9;
+    _this8 = _possibleConstructorReturn(this, _getPrototypeOf(checkedAttribute).call(this, props));
+    _this8.attributeName = 'checked';
+    return _this8;
   }
 
   return checkedAttribute;
@@ -1682,13 +1706,13 @@ function (_BooleanAttribute3) {
   _inherits(disabledAttribute, _BooleanAttribute3);
 
   function disabledAttribute() {
-    var _this10;
+    var _this9;
 
     _classCallCheck(this, disabledAttribute);
 
-    _this10 = _possibleConstructorReturn(this, _getPrototypeOf(disabledAttribute).call(this, props));
-    _this10.attributeName = 'disabled';
-    return _this10;
+    _this9 = _possibleConstructorReturn(this, _getPrototypeOf(disabledAttribute).call(this, props));
+    _this9.attributeName = 'disabled';
+    return _this9;
   }
 
   return disabledAttribute;
@@ -1702,13 +1726,13 @@ function (_BooleanAttribute4) {
   _inherits(asyncAttribute, _BooleanAttribute4);
 
   function asyncAttribute() {
-    var _this11;
+    var _this10;
 
     _classCallCheck(this, asyncAttribute);
 
-    _this11 = _possibleConstructorReturn(this, _getPrototypeOf(asyncAttribute).call(this, props));
-    _this11.attributeName = 'async';
-    return _this11;
+    _this10 = _possibleConstructorReturn(this, _getPrototypeOf(asyncAttribute).call(this, props));
+    _this10.attributeName = 'async';
+    return _this10;
   }
 
   return asyncAttribute;
@@ -1722,13 +1746,13 @@ function (_BooleanAttribute5) {
   _inherits(deferAttribute, _BooleanAttribute5);
 
   function deferAttribute() {
-    var _this12;
+    var _this11;
 
     _classCallCheck(this, deferAttribute);
 
-    _this12 = _possibleConstructorReturn(this, _getPrototypeOf(deferAttribute).call(this, props));
-    _this12.attributeName = 'defer';
-    return _this12;
+    _this11 = _possibleConstructorReturn(this, _getPrototypeOf(deferAttribute).call(this, props));
+    _this11.attributeName = 'defer';
+    return _this11;
   }
 
   return deferAttribute;
@@ -1742,18 +1766,18 @@ function (_BaseAttribute2) {
   _inherits(classAttribute, _BaseAttribute2);
 
   function classAttribute(props) {
-    var _this13;
+    var _this12;
 
     _classCallCheck(this, classAttribute);
 
-    _this13 = _possibleConstructorReturn(this, _getPrototypeOf(classAttribute).call(this, props));
+    _this12 = _possibleConstructorReturn(this, _getPrototypeOf(classAttribute).call(this, props));
 
     if (util.isArray(props)) {
-      _this13.attributeValue = props.join(' ');
+      _this12.attributeValue = props.join(' ');
     }
 
-    _this13.attributeName = 'class';
-    return _this13;
+    _this12.attributeName = 'class';
+    return _this12;
   }
 
   return classAttribute;
@@ -1767,23 +1791,23 @@ function (_BaseAttribute3) {
   _inherits(idAttribute, _BaseAttribute3);
 
   function idAttribute(props) {
-    var _this14;
+    var _this13;
 
     _classCallCheck(this, idAttribute);
 
-    _this14 = _possibleConstructorReturn(this, _getPrototypeOf(idAttribute).call(this, props));
-    _this14.attributeName = 'id';
+    _this13 = _possibleConstructorReturn(this, _getPrototypeOf(idAttribute).call(this, props));
+    _this13.attributeName = 'id';
 
-    if (util.isEmpty(_this14.attributeValue)) {
-      _this14.attributeValue = '';
+    if (util.isEmpty(_this13.attributeValue)) {
+      _this13.attributeValue = '';
     }
 
-    if (util.isSomeObject(_this14.container)) {
-      var givenId = _this14.attributeValue;
-      _this14.attributeValue = _this14.container.idProvider.generate(givenId); // this.container.lastId = this.attributeValue; we don't support me.lastId anymore
+    if (util.isSomeObject(_this13.container)) {
+      var givenId = _this13.attributeValue;
+      _this13.attributeValue = _this13.container.idProvider.generate(givenId); // this.container.lastId = this.attributeValue; we don't support me.lastId anymore
 
       if (util.isNumeric(givenId)) {
-        _this14.container.ids[givenId] = _this14.attributeValue;
+        _this13.container.ids[givenId] = _this13.attributeValue;
       }
       /* else if (givenId === '') {	// we don't support lastId anymore
       this.container.ids.push(this.container.lastId);
@@ -1791,7 +1815,7 @@ function (_BaseAttribute3) {
 
     }
 
-    return _this14;
+    return _this13;
   }
 
   return idAttribute;
@@ -1805,18 +1829,18 @@ function (_BaseAttribute4) {
   _inherits(dirAttribute, _BaseAttribute4);
 
   function dirAttribute(props) {
-    var _this15;
+    var _this14;
 
     _classCallCheck(this, dirAttribute);
 
-    _this15 = _possibleConstructorReturn(this, _getPrototypeOf(dirAttribute).call(this, props));
-    _this15.attributeName = 'dir';
+    _this14 = _possibleConstructorReturn(this, _getPrototypeOf(dirAttribute).call(this, props));
+    _this14.attributeName = 'dir';
 
-    if (['rtl', 'ltr'].indexOf(toStr(_this15.attributeValue)) < 0) {
-      _this15.attributeValue = '';
+    if (['rtl', 'ltr'].indexOf(toStr(_this14.attributeValue)) < 0) {
+      _this14.attributeValue = '';
     }
 
-    return _this15;
+    return _this14;
   }
 
   return dirAttribute;
@@ -1830,19 +1854,19 @@ function (_BaseAttribute5) {
   _inherits(styleAttribute, _BaseAttribute5);
 
   function styleAttribute(props) {
-    var _this16;
+    var _this15;
 
     _classCallCheck(this, styleAttribute);
 
-    _this16 = _possibleConstructorReturn(this, _getPrototypeOf(styleAttribute).call(this, props));
-    _this16.attributeName = 'style';
-    return _this16;
+    _this15 = _possibleConstructorReturn(this, _getPrototypeOf(styleAttribute).call(this, props));
+    _this15.attributeName = 'style';
+    return _this15;
   }
 
   _createClass(styleAttribute, [{
     key: "populate",
     value: function populate(styles) {
-      var _this17 = this;
+      var _this16 = this;
 
       var result = [];
 
@@ -1852,7 +1876,7 @@ function (_BaseAttribute5) {
             style = style.trim();
             result.push(style[style.length - 1] == ';' ? style.substr(0, style.length - 1) : style);
           } else if (util.isSomeObject(style)) {
-            var _styles = _this17.populate(style);
+            var _styles = _this16.populate(style);
 
             if (util.isSomeString(_styles)) {
               result.push(_styles);
@@ -1919,11 +1943,11 @@ function (_BaseElement2) {
   _inherits(bindElement, _BaseElement2);
 
   function bindElement(props) {
-    var _this18;
+    var _this17;
 
     _classCallCheck(this, bindElement);
 
-    _this18 = _possibleConstructorReturn(this, _getPrototypeOf(bindElement).call(this, props));
+    _this17 = _possibleConstructorReturn(this, _getPrototypeOf(bindElement).call(this, props));
     /* structure:
     {
     event: string,				// click, dbclick, ...
@@ -1933,23 +1957,23 @@ function (_BaseElement2) {
     }
     */
 
-    _this18.event = (util.isSomeString(_this18.event) ? _this18.event : '').toLowerCase();
+    _this17.event = (util.isSomeString(_this17.event) ? _this17.event : '').toLowerCase();
 
-    if (_this18.event.length >= 2 && _this18.event.substr(0, 2) == 'on') {
-      _this18.event = _this18.event.substr(2);
+    if (_this17.event.length >= 2 && _this17.event.substr(0, 2) == 'on') {
+      _this17.event = _this17.event.substr(2);
     }
 
-    return _this18;
+    return _this17;
   }
 
   _createClass(bindElement, [{
     key: "render",
     value: function render() {
-      var _this19 = this;
+      var _this18 = this;
 
       if (validation.isValidEvent(this.event) && util.isSomeString(this.target) && util.isFunction(this.handler) && util.isSomeObject(this.container) && util.isArray(this.container.events)) {
         var e = this.container.events.find(function (e) {
-          return e.name == _this19.event && e.target == _this19.target && e.handler == _this19.handler;
+          return e.name == _this18.event && e.target == _this18.target && e.handler == _this18.handler;
         });
 
         if (e == undefined) {
@@ -2734,6 +2758,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.range = exports.Hex2Bin = exports.Hex2Oct = exports.Hex2Dec = exports.Oct2Bin = exports.Oct2Hex = exports.Oct2Dec = exports.Bin2Oct = exports.Bin2Hex = exports.Bin2Dec = exports.Dec2Oct = exports.Dec2Hex = exports.Dec2Bin = exports.htmlDecodeToString = exports.htmlDecode = exports.htmlEncode = exports.htmlEncodeToString = exports._htmlDecode = exports._htmlEncode = exports._html_entity_to_char_map = exports._char_to_html_entity_map = exports.urlDecodeComponent = exports.urlEncodeComponent = exports.urlDecodeToString = exports.urlDecode = exports.urlEncodeToString = exports.urlEncode = exports.capitalize = exports.reverseToString = exports.reverse = exports.upper = exports.lower = exports.trim = exports.apply = exports.unmerge = exports.join = exports.merge = exports.right = exports.left = exports.lastIndexOf = exports.toStr = exports.deepAssign = exports.isClass = exports.isNumeric = exports.isPureFunction = exports.isBool = exports.isDate = exports.isSomeString = exports.isSomeObject = exports.isEmptyObject = exports.isObject = exports.isFunction = exports.isArray = exports.isEmpty = exports.getEls = exports.getEl = exports.NotImplementedException = void 0;
 
+var _jquery = _interopRequireDefault(require("./jquery.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -2927,6 +2955,11 @@ var NotImplementedException = function NotImplementedException(x) {
     throw 'Not Imlemented Exception';
   }
 };
+/* warning: the following function may not work correctly in all browsers, situations and scenarios
+			because function.caller is deprecated based on ECMAScript standard.
+			this function is not used anywhere in j6t.
+*/
+
 
 exports.NotImplementedException = NotImplementedException;
 
@@ -2942,6 +2975,11 @@ var isPureFunction = function isPureFunction(fn) {
 
   return result;
 };
+/* warning: the following function may not work correctly in all browsers, situations and scenarios
+			because it is based on the deprecated isPureFunction().
+			this function is not used anywhere in j6t.
+*/
+
 
 exports.isPureFunction = isPureFunction;
 
@@ -2967,12 +3005,12 @@ var deepAssign = function deepAssign(target) {
     for (var key in source) {
       if (isObject(source[key])) {
         if (!target[key]) {
-          Object.assign(target, _defineProperty({}, key, {}));
+          _jquery["default"].extend(target, _defineProperty({}, key, {}));
         }
 
         deepAssign(target[key], source[key]);
       } else {
-        Object.assign(target, _defineProperty({}, key, source[key]));
+        _jquery["default"].extend(target, _defineProperty({}, key, source[key]));
       }
     }
   }
@@ -3364,7 +3402,7 @@ var range = function range(from, to) {
 
 exports.range = range;
 
-},{}],7:[function(require,module,exports){
+},{"./jquery.js":3}],7:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {

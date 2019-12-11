@@ -377,7 +377,15 @@ class j6tRoot {
 
 class Component {
 	constructor(props) {
-		jQuery.extend(this, (util.isSomeObject(props) ? props: { arg: props }));
+		this.props = jQuery.extend({}, (util.isSomeObject(props) ? props: { arg: props }));
+		
+		if (util.isSomeObject(this.props.parent)) {
+			this.parent = this.props.parent;
+		}
+		
+		if (util.isSomeObject(this.props.logger)) {
+			this.logger = this.props.logger;
+		}
 		
 		if (!(this.logger instanceof(BaseLogger))) {
 			if (util.isSomeObject(this.parent) && this.parent.logger instanceof(BaseLogger)) {
@@ -385,6 +393,10 @@ class Component {
 			} else {
 				this.logger = new NullLogger();
 			}
+		}
+		
+		if (util.isBool(this.props.isRoot)) {
+			this.isRoot = this.props.isRoot;
 		}
 		
 		if (util.isEmpty(this.parent)) {
@@ -395,17 +407,25 @@ class Component {
 		
 		let reservedIdProvider;
 		
+		if (util.isSomeObject(this.props.idProvider)) {
+			this.idProvider = this.props.idProvider;
+		}
+		
 		if (!util.isSomeObject(this.idProvider) && util.isSomeObject(this.parent) && util.isSomeObject(this.parent.idProvider)) {
 			this.idProvider = this.parent.idProvider;
 		}
 		
 		if (!(this.idProvider instanceof(j6tIdProvider))) {
-			this.logger.warn(`warning: specified IdProvider is not a j6tIdProvider instance`);
-			this.logger.warn(`used j6tUniversalIdProvider as fallback`);
+			this.logger.error(`warning: specified IdProvider is not a j6tIdProvider instance`);
+			this.logger.error(`used j6tUniversalIdProvider as fallback`);
 			
 			reservedIdProvider = new j6tUniversalIdProvider();
 			
 			this.idProvider = reservedIdProvider;
+		}
+		
+		if (!util.isSomeString(this.props.id)) {
+			this.id = this.props.id;
 		}
 		
 		this.id = this.idProvider.generate(this.id);
@@ -424,7 +444,7 @@ class Component {
 		this.idProviderState = null;
 		this.ids = [];
 		this.lastId = '';	// not used anymore
-		this.hasWrapper = false;
+		this.hasWrapper = util.isBool(this.props.hasWrapper) ? this.props.hasWrapper: false;
 		this.lastOwner = null;
 		this.children = [];
 		this.events = [];		/*	item structure:
@@ -739,11 +759,15 @@ class Component {
 			} while (false);
 			
 			if (!util.isSomeObject(obj) && util.isSomeString(dynamicRender)) {
-				obj = _create(`new dynamicRender(props)`, props);
+				obj = _create(`new DynamicComponent(props)`, props);
 				
 				if (util.isSomeObject(obj)) {
 					eval(`obj.render = ${dynamicRender}`);
 				}
+			}
+			
+			if (util.isSomeObject(obj) && !util.isSomeObject(obj.props)) {
+				obj.props = {};
 			}
 			
 			_render(obj);
@@ -1036,7 +1060,7 @@ Component.scripts = [];	/*	structure
 Component.imports = [];
 
 // --------------------------- Tags (start) -------------------------
-class dynamicRender extends Component {
+class DynamicComponent extends Component {
 	constructor(props) {
 		super(props);
 	}
@@ -1058,34 +1082,32 @@ class BaseTag extends Component {
 						}
 						*/
 		
-		if (!util.isSomeString(this.tagName) && util.isSomeString(props)) {
+		if (util.isSomeString(props)) {
 			this.tagName = props;
 		}
 		
-		if (!util.isBool(this.selfClose)) {
-			this.selfClose = false;
-		}
+		this.selfClose = util.isBool(this.props.selfClose) ? this.props.selfClose: false;
 		
 		//this.lastId = this.id; we don't support me.lastId any more because it is problematic
 		// instead we add me.id to me.ids
 		this.ids.push(me.id);
 		this.lastOwner = this;
 		
-		if (!util.isEmpty(this.arg)) {
-			this.html = this.arg
+		if (!util.isEmpty(this.props.arg)) {
+			this.props.html = this.arg
 		}
 	}
 	isValid() {
 		return validation.isValidTag(this.tagName);
 	}
 	getExcludedAttributes() {
-		return ['tagname', 'selfclose', 'lastid', 'ids', 'lastowner', 'children', 'events', 'resources', 'html', 'text', 'logger', 'parent', 'arg', 'idprovider'];
+		return ['tagname', 'selfclose', 'isroot', 'logger', 'parent', 'arg', 'idprovider', 'haswrapper'];
 	}
 	getAttributes() {
 		let result = [];
 		let excludes = this.getExcludedAttributes();
 		
-		jQuery.each(this, prop => {
+		jQuery.each(this.props, prop => {
 			if (util.isSomeString(prop) && !util.isNumeric(prop)) {
 				let _prop = prop.toLowerCase();
 				
@@ -1098,19 +1120,19 @@ class BaseTag extends Component {
 		return result;
 	}
 	preRender() {
-		this.children = [];
-		this.ids = [];
+		super.preRender();
+		
 		this.ids.push(me.id);
 	}
 	render() {
 		if (this.isValid()) {
 			let me = this;
 			
-			if (this.selfClose) {
-				return me.parse`<!${me.tagName}${me.getAttributes()}${prop => me.parse` @${prop}${me[prop]}`}/>`
+			if (me.selfClose) {
+				return me.parse`<!${me.tagName}${me.getAttributes()}${prop => me.parse` @${prop}${me.props[prop]}`}/>`
 			} else {
-				return me.parse`<!${me.tagName}${me.getAttributes()}${prop => me.parse` @${prop}${me[prop]}`}>
-								${me.validateText(me.text)}!${me.validateHtml(me.html)}
+				return me.parse`<!${me.tagName}${me.getAttributes()}${prop => me.parse` @${prop}${me.props[prop]}`}>
+								${me.validateText(me.props.text)}!${me.validateHtml(me.props.html)}
 							   </!${me.tagName}>`
 			}
 		} else {
@@ -1150,14 +1172,17 @@ class linkTag extends BaseTag {
 		
 		super(_props);
 		
-		this.href = util.isSomeString(this.href) ? this.href : '';
+		// make sure href, rel, type in this.props are string
+		this.props.href = util.isSomeString(this.props.href) ? this.props.href : '';
+		this.props.rel = util.isSomeString(this.props.rel) ? this.props.rel : '';
+		this.props.type = util.isSomeString(this.props.type) ? this.props.type : '';
 		
-		if (util.left(this.href, 4).toLowerCase() == '.css') {
-			if (util.isEmpty(this.rel)) {
-				this.rel = 'stylesheet';
+		if (util.left(this.props.href, 4).toLowerCase() == '.css') {
+			if (util.isEmpty(this.props.rel)) {
+				this.props.rel = 'stylesheet';
 			}
-			if (util.isEmpty(this.type)) {
-				this.type = 'text/css';
+			if (util.isEmpty(this.props.type)) {
+				this.props.type = 'text/css';
 			}
 		}
 	}
@@ -1167,20 +1192,20 @@ class linkElement {
 		if (util.isArray(props)) {
 			props.forEach(x => {
 				const element = new linkTag(x);
-				const href = element.href.toLowerCase();
+				const href = element.props.href.toLowerCase();
 				
 				if (util.isSomeString(href)) {
-					if (Component.links.find(e => e.element.href.toLowerCase() == href) == undefined) {
+					if (Component.links.find(e => e.element.props.href.toLowerCase() == href) == undefined) {
 						Component.links.push({ applied: false, element })
 					}
 				}
 			});
 		} else {
 			const element = new linkTag(props);
-			const href = element.href.toLowerCase();
+			const href = element.props.href.toLowerCase();
 			
 			if (util.isSomeString(href)) {
-				if (Component.links.find(e => e.element.href.toLowerCase() == href) == undefined) {
+				if (Component.links.find(e => e.element.props.href.toLowerCase() == href) == undefined) {
 					Component.links.push({ applied: false, element })
 				}
 			}
@@ -1202,15 +1227,17 @@ class scriptTag extends BaseTag {
 		
 		super(_props);
 		
-		this.src = util.isSomeString(this.src) ? this.src : '';
+		// make sure src, type in this.props are string
+		this.props.src = util.isSomeString(this.props.src) ? this.props.src : '';
+		this.props.type = util.isSomeString(this.props.type) ? this.props.type : '';
 		
-		if (util.left(this.src, 3).toLowerCase() == '.js') {
-			if (util.isEmpty(this.type)) {
-				this.type = 'text/javascript';
+		if (util.left(this.props.src, 3).toLowerCase() == '.js') {
+			if (util.isEmpty(this.props.type)) {
+				this.props.type = 'text/javascript';
 			}
-		} else if (util.left(this.src, 5).toLowerCase() == '.json') {
-			if (util.isEmpty(this.type)) {
-				this.type = 'application/json';
+		} else if (util.left(this.props.src, 5).toLowerCase() == '.json') {
+			if (util.isEmpty(this.props.type)) {
+				this.props.type = 'application/json';
 			}
 		}
 	}
@@ -1220,20 +1247,20 @@ class scriptElement {
 		if (util.isArray(props)) {
 			props.forEach(x => {
 				const element = new scriptTag(x);
-				const src = element.src.toLowerCase();
+				const src = element.props.src.toLowerCase();
 				
 				if (util.isSomeString(src)) {
-					if (Component.scripts.find(e => e.element.src.toLowerCase() == src) == undefined) {
+					if (Component.scripts.find(e => e.element.props.src.toLowerCase() == src) == undefined) {
 						Component.scripts.push({ applied: false, element })
 					}
 				}
 			});
 		} else {
 			const element = new scriptTag(props);
-			const src = element.toLowerCase();
+			const src = element.props.toLowerCase();
 			
 			if (util.isSomeString(src)) {
-				if (Component.scripts.find(e => e.element.src.toLowerCase() == src) == undefined) {
+				if (Component.scripts.find(e => e.element.props.src.toLowerCase() == src) == undefined) {
 					Component.scripts.push({ applied: false, element })
 				}
 			}

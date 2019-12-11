@@ -2139,7 +2139,7 @@ function () {
   function BaseLogger(props) {
     _classCallCheck(this, BaseLogger);
 
-    Object.assign(this, props);
+    _jquery["default"].extend(this, props);
 
     if (!util.isArray(this.filter)) {
       this.filter = logFilter.none;

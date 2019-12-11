@@ -719,7 +719,11 @@ function () {
             value = '';
             state = 0;
           } else {
-            result += value + (ended ? '' : ch);
+            if (value == '#' || value == '') {
+              result += me.id + (ended ? '' : ch);
+            } else {
+              result += value + (ended ? '' : ch);
+            }
           }
         } else {
           if (ended) {

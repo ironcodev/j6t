@@ -40,7 +40,7 @@ exports["default"] = _default;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.bindElement = exports.styleAttribute = exports.dirAttribute = exports.idAttribute = exports.classAttribute = exports.deferAttribute = exports.asyncAttribute = exports.disabledAttribute = exports.checkedAttribute = exports.selectedAttribute = exports.BooleanAttribute = exports.BaseAttribute = exports.scriptElement = exports.scriptTag = exports.linkElement = exports.linkTag = exports.stylesTag = exports.BaseTag = exports.BaseElement = exports.dynamicRender = exports.Component = exports.j6tUniversalIdProvider = exports.j6tIdProvider = exports["default"] = void 0;
+exports.bindElement = exports.styleAttribute = exports.dirAttribute = exports.idAttribute = exports.classAttribute = exports.deferAttribute = exports.asyncAttribute = exports.disabledAttribute = exports.checkedAttribute = exports.selectedAttribute = exports.BooleanAttribute = exports.BaseAttribute = exports.scriptElement = exports.scriptTag = exports.linkElement = exports.linkTag = exports.stylesTag = exports.BaseTag = exports.BaseElement = exports.DynamicComponent = exports.Component = exports.j6tUniversalIdProvider = exports.j6tIdProvider = exports["default"] = void 0;
 
 var templateTags = _interopRequireWildcard(require("./tags.js"));
 
@@ -99,6 +99,10 @@ function _templateObject() {
 }
 
 function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
+
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -508,9 +512,17 @@ function () {
   function Component(props) {
     _classCallCheck(this, Component);
 
-    _jquery["default"].extend(this, util.isSomeObject(props) ? props : {
+    this.props = _jquery["default"].extend({}, util.isSomeObject(props) ? props : {
       arg: props
     });
+
+    if (util.isSomeObject(this.props.parent)) {
+      this.parent = this.props.parent;
+    }
+
+    if (util.isSomeObject(this.props.logger)) {
+      this.logger = this.props.logger;
+    }
 
     if (!(this.logger instanceof _logger.BaseLogger)) {
       if (util.isSomeObject(this.parent) && this.parent.logger instanceof _logger.BaseLogger) {
@@ -518,6 +530,10 @@ function () {
       } else {
         this.logger = new _logger.NullLogger();
       }
+    }
+
+    if (util.isBool(this.props.isRoot)) {
+      this.isRoot = this.props.isRoot;
     }
 
     if (util.isEmpty(this.parent)) {
@@ -528,15 +544,23 @@ function () {
 
     var reservedIdProvider;
 
+    if (util.isSomeObject(this.props.idProvider)) {
+      this.idProvider = this.props.idProvider;
+    }
+
     if (!util.isSomeObject(this.idProvider) && util.isSomeObject(this.parent) && util.isSomeObject(this.parent.idProvider)) {
       this.idProvider = this.parent.idProvider;
     }
 
     if (!(this.idProvider instanceof j6tIdProvider)) {
-      this.logger.warn("warning: specified IdProvider is not a j6tIdProvider instance");
-      this.logger.warn("used j6tUniversalIdProvider as fallback");
+      this.logger.error("warning: specified IdProvider is not a j6tIdProvider instance");
+      this.logger.error("used j6tUniversalIdProvider as fallback");
       reservedIdProvider = new j6tUniversalIdProvider();
       this.idProvider = reservedIdProvider;
+    }
+
+    if (!util.isSomeString(this.props.id)) {
+      this.id = this.props.id;
     }
 
     this.id = this.idProvider.generate(this.id);
@@ -556,7 +580,7 @@ function () {
     this.ids = [];
     this.lastId = ''; // not used anymore
 
-    this.hasWrapper = false;
+    this.hasWrapper = util.isBool(this.props.hasWrapper) ? this.props.hasWrapper : false;
     this.lastOwner = null;
     this.children = [];
     this.events = [];
@@ -913,11 +937,15 @@ function () {
         } while (false);
 
         if (!util.isSomeObject(obj) && util.isSomeString(dynamicRender)) {
-          obj = _create("new dynamicRender(props)", props);
+          obj = _create("new DynamicComponent(props)", props);
 
           if (util.isSomeObject(obj)) {
             eval("obj.render = ".concat(dynamicRender));
           }
+        }
+
+        if (util.isSomeObject(obj) && !util.isSomeObject(obj.props)) {
+          obj.props = {};
         }
 
         _render(obj);
@@ -1234,21 +1262,21 @@ applied: bool	whether this script was added to page or not
 
 Component.imports = []; // --------------------------- Tags (start) -------------------------
 
-var dynamicRender =
+var DynamicComponent =
 /*#__PURE__*/
 function (_Component) {
-  _inherits(dynamicRender, _Component);
+  _inherits(DynamicComponent, _Component);
 
-  function dynamicRender(props) {
-    _classCallCheck(this, dynamicRender);
+  function DynamicComponent(props) {
+    _classCallCheck(this, DynamicComponent);
 
-    return _possibleConstructorReturn(this, _getPrototypeOf(dynamicRender).call(this, props));
+    return _possibleConstructorReturn(this, _getPrototypeOf(DynamicComponent).call(this, props));
   }
 
-  return dynamicRender;
+  return DynamicComponent;
 }(Component);
 
-exports.dynamicRender = dynamicRender;
+exports.DynamicComponent = DynamicComponent;
 
 var BaseElement =
 /*#__PURE__*/
@@ -1289,22 +1317,19 @@ function (_Component2) {
     }
     */
 
-    if (!util.isSomeString(_this3.tagName) && util.isSomeString(props)) {
+    if (util.isSomeString(props)) {
       _this3.tagName = props;
     }
 
-    if (!util.isBool(_this3.selfClose)) {
-      _this3.selfClose = false;
-    } //this.lastId = this.id; we don't support me.lastId any more because it is problematic
+    _this3.selfClose = util.isBool(_this3.props.selfClose) ? _this3.props.selfClose : false; //this.lastId = this.id; we don't support me.lastId any more because it is problematic
     // instead we add me.id to me.ids
-
 
     _this3.ids.push(me.id);
 
     _this3.lastOwner = _assertThisInitialized(_this3);
 
-    if (!util.isEmpty(_this3.arg)) {
-      _this3.html = _this3.arg;
+    if (!util.isEmpty(_this3.props.arg)) {
+      _this3.props.html = _this3.arg;
     }
 
     return _this3;
@@ -1318,7 +1343,7 @@ function (_Component2) {
   }, {
     key: "getExcludedAttributes",
     value: function getExcludedAttributes() {
-      return ['tagname', 'selfclose', 'lastid', 'ids', 'lastowner', 'children', 'events', 'resources', 'html', 'text', 'logger', 'parent', 'arg', 'idprovider'];
+      return ['tagname', 'selfclose', 'isroot', 'logger', 'parent', 'arg', 'idprovider', 'haswrapper'];
     }
   }, {
     key: "getAttributes",
@@ -1326,7 +1351,7 @@ function (_Component2) {
       var result = [];
       var excludes = this.getExcludedAttributes();
 
-      _jquery["default"].each(this, function (prop) {
+      _jquery["default"].each(this.props, function (prop) {
         if (util.isSomeString(prop) && !util.isNumeric(prop)) {
           var _prop = prop.toLowerCase();
 
@@ -1341,8 +1366,8 @@ function (_Component2) {
   }, {
     key: "preRender",
     value: function preRender() {
-      this.children = [];
-      this.ids = [];
+      _get(_getPrototypeOf(BaseTag.prototype), "preRender", this).call(this);
+
       this.ids.push(me.id);
     }
   }, {
@@ -1351,14 +1376,14 @@ function (_Component2) {
       if (this.isValid()) {
         var _me = this;
 
-        if (this.selfClose) {
+        if (_me.selfClose) {
           return _me.parse(_templateObject(), _me.tagName, _me.getAttributes(), function (prop) {
-            return _me.parse(_templateObject2(), prop, _me[prop]);
+            return _me.parse(_templateObject2(), prop, _me.props[prop]);
           });
         } else {
           return _me.parse(_templateObject3(), _me.tagName, _me.getAttributes(), function (prop) {
-            return _me.parse(_templateObject4(), prop, _me[prop]);
-          }, _me.validateText(_me.text), _me.validateHtml(_me.html), _me.tagName);
+            return _me.parse(_templateObject4(), prop, _me.props[prop]);
+          }, _me.validateText(_me.props.text), _me.validateHtml(_me.props.html), _me.tagName);
         }
       } else {
         return '';
@@ -1419,16 +1444,19 @@ function (_BaseTag2) {
       _props.href = props;
     }
 
-    _this4 = _possibleConstructorReturn(this, _getPrototypeOf(linkTag).call(this, _props));
-    _this4.href = util.isSomeString(_this4.href) ? _this4.href : '';
+    _this4 = _possibleConstructorReturn(this, _getPrototypeOf(linkTag).call(this, _props)); // make sure href, rel, type in this.props are string
 
-    if (util.left(_this4.href, 4).toLowerCase() == '.css') {
-      if (util.isEmpty(_this4.rel)) {
-        _this4.rel = 'stylesheet';
+    _this4.props.href = util.isSomeString(_this4.props.href) ? _this4.props.href : '';
+    _this4.props.rel = util.isSomeString(_this4.props.rel) ? _this4.props.rel : '';
+    _this4.props.type = util.isSomeString(_this4.props.type) ? _this4.props.type : '';
+
+    if (util.left(_this4.props.href, 4).toLowerCase() == '.css') {
+      if (util.isEmpty(_this4.props.rel)) {
+        _this4.props.rel = 'stylesheet';
       }
 
-      if (util.isEmpty(_this4.type)) {
-        _this4.type = 'text/css';
+      if (util.isEmpty(_this4.props.type)) {
+        _this4.props.type = 'text/css';
       }
     }
 
@@ -1449,11 +1477,11 @@ function () {
     if (util.isArray(props)) {
       props.forEach(function (x) {
         var element = new linkTag(x);
-        var href = element.href.toLowerCase();
+        var href = element.props.href.toLowerCase();
 
         if (util.isSomeString(href)) {
           if (Component.links.find(function (e) {
-            return e.element.href.toLowerCase() == href;
+            return e.element.props.href.toLowerCase() == href;
           }) == undefined) {
             Component.links.push({
               applied: false,
@@ -1464,11 +1492,11 @@ function () {
       });
     } else {
       var element = new linkTag(props);
-      var href = element.href.toLowerCase();
+      var href = element.props.href.toLowerCase();
 
       if (util.isSomeString(href)) {
         if (Component.links.find(function (e) {
-          return e.element.href.toLowerCase() == href;
+          return e.element.props.href.toLowerCase() == href;
         }) == undefined) {
           Component.links.push({
             applied: false,
@@ -1509,16 +1537,18 @@ function (_BaseTag3) {
       _props.src = props;
     }
 
-    _this5 = _possibleConstructorReturn(this, _getPrototypeOf(scriptTag).call(this, _props));
-    _this5.src = util.isSomeString(_this5.src) ? _this5.src : '';
+    _this5 = _possibleConstructorReturn(this, _getPrototypeOf(scriptTag).call(this, _props)); // make sure src, type in this.props are string
 
-    if (util.left(_this5.src, 3).toLowerCase() == '.js') {
-      if (util.isEmpty(_this5.type)) {
-        _this5.type = 'text/javascript';
+    _this5.props.src = util.isSomeString(_this5.props.src) ? _this5.props.src : '';
+    _this5.props.type = util.isSomeString(_this5.props.type) ? _this5.props.type : '';
+
+    if (util.left(_this5.props.src, 3).toLowerCase() == '.js') {
+      if (util.isEmpty(_this5.props.type)) {
+        _this5.props.type = 'text/javascript';
       }
-    } else if (util.left(_this5.src, 5).toLowerCase() == '.json') {
-      if (util.isEmpty(_this5.type)) {
-        _this5.type = 'application/json';
+    } else if (util.left(_this5.props.src, 5).toLowerCase() == '.json') {
+      if (util.isEmpty(_this5.props.type)) {
+        _this5.props.type = 'application/json';
       }
     }
 
@@ -1539,11 +1569,11 @@ function () {
     if (util.isArray(props)) {
       props.forEach(function (x) {
         var element = new scriptTag(x);
-        var src = element.src.toLowerCase();
+        var src = element.props.src.toLowerCase();
 
         if (util.isSomeString(src)) {
           if (Component.scripts.find(function (e) {
-            return e.element.src.toLowerCase() == src;
+            return e.element.props.src.toLowerCase() == src;
           }) == undefined) {
             Component.scripts.push({
               applied: false,
@@ -1554,11 +1584,11 @@ function () {
       });
     } else {
       var element = new scriptTag(props);
-      var src = element.toLowerCase();
+      var src = element.props.toLowerCase();
 
       if (util.isSomeString(src)) {
         if (Component.scripts.find(function (e) {
-          return e.element.src.toLowerCase() == src;
+          return e.element.props.src.toLowerCase() == src;
         }) == undefined) {
           Component.scripts.push({
             applied: false,

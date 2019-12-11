@@ -1517,7 +1517,7 @@ export {
 	j6tUniversalIdProvider,
 	/*j6tNestedIdProvider,*/	// this id provider is not implemented yet.
 	Component,
-	dynamicRender,
+	DynamicComponent,
 	BaseElement,
 	BaseTag,
 	stylesTag,

@@ -1,4 +1,4 @@
-import jQuery from './jquery.js'
+import _jQuery from './jquery.js'
 import * as util from './util.js'
 
 const logType = {
@@ -41,7 +41,7 @@ const logFilter = {
 }
 class BaseLogger {
 	constructor(props) {
-		Object.assign(this, props);
+		_jQuery.extend(this, props);
 		
 		if (!util.isArray(this.filter)) {
 			this.filter = logFilter.none;
@@ -212,7 +212,7 @@ class DomLogger extends BaseLogger {
 	}
 	_logInternal(log) {
 		if (this.isValidLog(log)) {
-			let target = jQuery(this.target);
+			let target = _jQuery(this.target);
 			
 			if (target && target.length) {
 				target.append(JSON.stringify(log, this.replacer, this.space));

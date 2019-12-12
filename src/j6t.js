@@ -1126,7 +1126,7 @@ class BaseTag extends Component {
 	preRender() {
 		super.preRender();
 		
-		this.ids.push(me.id);
+		this.ids.push(this.id);
 	}
 	render() {
 		if (this.isValid()) {

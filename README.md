@@ -63,6 +63,10 @@ const app = new App();
 
 j6t.render(app, '#app')
 ```
+
+jsfiddle link:
+https://jsfiddle.net/omrani/znksgp6v/4/
+
 ### props and constructor
 j6t's components have a props property (similar to React with some restrictions). You can pass your properties to your component's constructor as an object when instantiating from your component. Pay attention that you need to specify an explicit constructor for your component and call super() in it.
 

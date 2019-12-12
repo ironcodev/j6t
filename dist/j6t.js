@@ -1870,7 +1870,7 @@ function (_BaseAttribute4) {
     _this14 = _possibleConstructorReturn(this, _getPrototypeOf(dirAttribute).call(this, props));
     _this14.attributeName = 'dir';
 
-    if (['rtl', 'ltr'].indexOf(toStr(_this14.attributeValue)) < 0) {
+    if (['rtl', 'ltr'].indexOf(util.toStr(_this14.attributeValue)) < 0) {
       _this14.attributeValue = '';
     }
 
@@ -1926,7 +1926,7 @@ function (_BaseAttribute5) {
           } else if (util.isFunction(value)) {
             _value = value();
           } else {
-            _value = toStr(value);
+            _value = util.toStr(value);
           } // $$$$$$$$$$$$$$ POTENTIAL XSS $$$$$$$$$$$$$
           // name and _value must be validated to be valid css name/value
           // $$$$$$$$$$$$$$ POTENTIAL XSS $$$$$$$$$$$$$

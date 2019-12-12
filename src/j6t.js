@@ -1394,7 +1394,7 @@ class dirAttribute extends BaseAttribute {
 		
 		this.attributeName = 'dir';
 		
-		if (['rtl', 'ltr'].indexOf(toStr(this.attributeValue)) < 0) {
+		if (['rtl', 'ltr'].indexOf(util.toStr(this.attributeValue)) < 0) {
 			this.attributeValue = '';
 		}
 	}
@@ -1431,7 +1431,7 @@ class styleAttribute extends BaseAttribute {
 				} else if (util.isFunction(value)) {
 					_value = value();
 				} else {
-					_value = toStr(value);
+					_value = util.toStr(value);
 				}
 				
 				// $$$$$$$$$$$$$$ POTENTIAL XSS $$$$$$$$$$$$$

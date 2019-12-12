@@ -64,7 +64,7 @@ const app = new App();
 j6t.render(app, '#app')
 ```
 
-jsfiddle link:
+jsfiddle:
 https://jsfiddle.net/omrani/znksgp6v/4/
 
 ### props and constructor
@@ -87,6 +87,8 @@ class App extends j6t.Component {
 
 const app = new App({ name: 'j6t' });
 ```
+jsfiddle:
+https://jsfiddle.net/omrani/znksgp6v/6/
 
 ## Component.parse() and HTMLEncode by default
 j6t's Component comes with an intelligent parse() method, and it is then when the interesting part begins.
@@ -105,6 +107,8 @@ class App extends j6t.Component {
     }
 }
 ```
+jsfiddle:
+https://jsfiddle.net/omrani/znksgp6v/9/
 
 Component.parse() is a tag function. It html encodes interpolated expressions by default. This prevents XSS injection attacks which normal template literals potentially have.
 
@@ -140,6 +144,8 @@ class App extends j6t.Component {
     }
 }
 ```
+jsfiddle:
+https://jsfiddle.net/omrani/znksgp6v/15/
 
 ## HTML Attributes
 ES6 template literals really eases using HTML attributes.
@@ -172,6 +178,8 @@ class Input extends j6t.Component {
     }
 }
 ```
+jsfiddle:
+https://jsfiddle.net/omrani/znksgp6v/19/
 
 The above code is equivalent to the following code.
 

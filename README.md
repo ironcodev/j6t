@@ -210,9 +210,9 @@ class App extends j6t.Component {
 jsfiddle:
 https://jsfiddle.net/omrani/znksgp6v/20/
 
-The final style attribute for the above <div> would be as below:
+The final style attribute for the above &lt;div&gt; would be as below:
 
-<div style="background-color: red; width: 100px; height: 100px"> ...
+&lt;div style="background-color: red; width: 100px; height: 100px"&gt; ...
     
 ## j6t special HTML attributes
 Component.parse() supports special HTML attributes.
@@ -275,7 +275,7 @@ class Button extends j6t.Component {
 }
 ```
 
-Here, the <div> is the root container for Button component. It is not necessary to wrap your tags inside a <div> though. If you have only a single tag, you can specify id${'#'} for that tag and make it the root container.
+Here, the &lt;div&gt; is the root container for Button component. It is not necessary to wrap your tags inside a &lt;div&gt; though. If you have only a single tag, you can specify id${'#'} for that tag and make it the root container.
     
 ```javascript
 class Button extends j6t.Component {
@@ -291,7 +291,7 @@ class Button extends j6t.Component {
 }
 ```
 
-If j6t sees that a component doesn't have a root container, it adds a defualt <div id${'#'}> to the conent returned by render().
+If j6t sees that a component doesn't have a root container, it adds a defualt &lt;div id${'#'}> to the conent returned by render().
 
 #### Access current component's id
 In order to access current component's id we can use #${'.'}.
@@ -430,7 +430,7 @@ class App extends j6t.Component {
 jsfiddle:
 https://jsfiddle.net/omrani/znksgp6v/30/
 
-Here the click event is specified for all <li> elements inside <ul>. There is a single function to handle the event. Note that, we didn't know id of <ul> since its automatically generated, but we are still able to refer to it in our css selector to target the <li> elements. Here, the click events is assigned only to the <li> element inside current component's <ul> not any <li> inside any <ul>.
+Here the click event is specified for all &lt;li&gt; elements inside &lt;ul&gt;. There is a single function to handle the event. Note that, we didn't know id of &lt;ul&gt; since its automatically generated, but we are still able to refer to it in our css selector to target the &lt;li&gt; elements. Here, the click events is assigned only to the &lt;li&gt; element inside current component's &lt;ul&gt; not any &lt;li&gt; inside any &lt;ul&gt;.
     
 The structure of the object we pass to bind${ ...} is as follows:
 ```

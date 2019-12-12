@@ -335,7 +335,7 @@ class j6tNestedIdProvider extends j6tIdProvider {
 
 class j6tRoot {
 	get version() {
-		return '1.1'
+		return '1.1.1'
 	}
 	render(component, target) {
 		if (component instanceof(Component) && jQuery(target).length == 1) {

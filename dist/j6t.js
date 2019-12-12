@@ -499,7 +499,7 @@ function () {
   }, {
     key: "version",
     get: function get() {
-      return '1.1';
+      return '1.1.1';
     }
   }]);
 
@@ -1372,7 +1372,7 @@ function (_Component2) {
     value: function preRender() {
       _get(_getPrototypeOf(BaseTag.prototype), "preRender", this).call(this);
 
-      this.ids.push(me.id);
+      this.ids.push(this.id);
     }
   }, {
     key: "render",

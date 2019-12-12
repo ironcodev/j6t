@@ -206,10 +206,13 @@ class App extends j6t.Component {
     }
 }
 ```
+
+jsfiddle:
+https://jsfiddle.net/omrani/znksgp6v/20/
+
 The final style attribute for the above <div> would be as below:
 
 <div style="background-color: red; width: 100px; height: 100px"> ...
-    
     
 ## j6t special HTML attributes
 Component.parse() supports special HTML attributes.
@@ -235,16 +238,16 @@ Later in your component you can refer to the generated id using #${...} and spec
 class Button extends j6t.Component {
     ...
     render() {
-        ...
+        const { type, size, text } = this.props;
         
         return this.parse`
             <button id${0} class="btn btn-${type}" style="width: ${size}">
                 ${text}
             </button>
             <script>
-                const btn = document.getElementById('#${0}');
+                const btn = document.getElementById('${0}');
                 btn.onclick = function() {
-                    alert('Hello World from j6t!');
+                    alert('Welcome to j6t');
                 }
             </script>
             `
@@ -341,7 +344,7 @@ If you specify an id using id${...}, you can then specify event handlers using x
 class Button extends j6t.Component {
     ...
     btnClicked(e) {
-        alert('Hello World from j6t!');
+        alert('Welcome to j6t');
     }
     render() {
         ...
@@ -352,6 +355,10 @@ class Button extends j6t.Component {
     }
 }
 ```
+
+jsfiddle:
+https://jsfiddle.net/omrani/znksgp6v/27/
+
 Here onclick is assigned to the recent node whose id is specified using id${}. Another example can clarify what elements will be chosen as targets of event.
 
 ```javascript
@@ -400,17 +407,19 @@ class Button extends j6t.Component {
 Sometimes you might want to assign the same event handler for a group of items using a css selector, not a single element. You can specify this event handler using bind${...}. Here is an example.
 
 ```javascript
-class Pagination extends j6t.Component {
+class App extends j6t.Component {
     ...
     liClicked(e) {
+        const text = $(this).text();
         
+        alert(text);
     }
     render() {
-        const colors = [ 'red', 'green', 'blue', 'yellow', 'orange', 'black', 'white' }
+        const colors = [ 'red', 'green', 'blue', 'yellow', 'orange', 'black', 'white' ]
         
         return this.parse`
             <ul id${0}>
-            ${numbers.map(n => `<li>${n}</li>`).join('')}
+            !${colors.map(x => `<li>${x}</li>`).join('')}
             </ul>
             
             bind${{ event: 'click', target: 'ul#0 li', handler: this.liClicked }}
@@ -418,6 +427,8 @@ class Pagination extends j6t.Component {
     }
 }
 ```
+jsfiddle:
+https://jsfiddle.net/omrani/znksgp6v/30/
 
 Here the click event is specified for all <li> elements inside <ul>. There is a single function to handle the event. Note that, we didn't know id of <ul> since its automatically generated, but we are still able to refer to it in our css selector to target the <li> elements. Here, the click events is assigned only to the <li> element inside current component's <ul> not any <li> inside any <ul>.
     

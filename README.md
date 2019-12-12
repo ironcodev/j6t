@@ -193,7 +193,7 @@ class Input extends j6t.Component {
     }
 }
 ```
-### Styles
+### CSS, Styles and HTML class attribute
 We can specify styles for an element using pure style="..." or style${'...'}. However, style${...} has a major benefit. We can specify a javascript object for style${...}. j6t converts the object to a css style string.
 
 ```javascript
@@ -213,7 +213,20 @@ https://jsfiddle.net/omrani/znksgp6v/20/
 The final style attribute for the above &lt;div&gt; would be as below:
 
 &lt;div style="background-color: red; width: 100px; height: 100px"&gt; ...
-    
+
+Similar to style${...}, we can also use class${...} to specify CSS class(s) of a tag.
+
+```javascript
+class App extends j6t.Component {
+    ...
+    render() {
+        return this.parse`
+            <button class${'btn btn-default'}>Submit</button>
+        `
+    }
+}
+```
+
 ## j6t special HTML attributes
 Component.parse() supports special HTML attributes.
 
@@ -385,7 +398,7 @@ class Card extends j6t.Component {
 
 Here the first onclick will be attached for id${0} and the second goes for id${1}.
 
-j6t knows main events in HTML specification, like click, dbclick, mousedown, mouseup, etc. In case we have a custom event, we can specify it by prepending a # before the name of the event.
+j6t knows main events in HTML specification, like click, dbclick, mousedown, mouseup, etc. In case we have a custom event, we can specify it by prepending a # sign before the name of the event.
 
 ```javascript
 class Button extends j6t.Component {
@@ -448,6 +461,60 @@ We can even specify nothing.
 
 bind${{ event: 'click', target: 'ul# li', handler: this.liClicked }}
 
+## HTML Tags
+In addition to the normal method of using plain tags in the content we return in the render() method, we can make use of j6t HTML tags to have a more concise content. We can create an HTML tag by appending its name to the $ sign and specify its attributes using an interpolated expression. Here is an example:
 
+```javascript
+class App extends j6t.Component {
+    ...
+    render() {
+        const { title, description } = this.props;
+        
+        return this.parse`
+            h1${title}
+            p${description}
+            a${{ href: '/', text: 'Return', 'class': 'btn btn-primary' }}
+            `
+    }
+}
+```
+
+Here, the content contains an &lt;h1&gt;, &lt;p&gt; and an &lt;a&gt; tag.
+
+If the tag we intend to create is a container tag such as &lt;h1&gt;, &lt;p&gt;, &lt;div&gt;, etc., we can specify content of the tag using 'text' or 'html' property in the object we specify in the interpolated expression. The value for the 'text' property will be HTML encoded, while the value of 'html' property will not be encoded and is placed in the content directly.
+
+# Nested Components
+The benefit of the component-based design is breaking down the UI into smaller reusable parts that are eaiser  to maintain. Similar to the way we can create tags using $ sign, we can instantiate and render another component inside a component. Here is an example:
+
+```javascript
+class Alert extends j6t.Component {
+    render() {
+        const { type, message } = this.props;
+        
+        return `<div class="alert alert-${type}">${message}</div>`
+    }
+}
+class App extends j6t.Component {
+    render() {
+        const { type, message } = this.props;
+        
+        return this.parse`
+            Alert${{ type: 'success', message: 'j6t is loaded and active. Welcome!' }}
+        `
+    }
+}
+```
+
+## Component's Children
+By default when we use tag${...} notation to render tags or create sub-components inside a component using component${...} syntax, j6t adds the created tags or component instance into a collection named 'children' to the parent component. Using the children proeprty in a component we can access its sub-components or tags.
+
+Whereas components derive from a base Component class, all tag objects derive from a BaseTag class. Similarly all attribute objects derive from a BaseAttribute class.
+
+### Forcing tags and attributes
+When Component.parse() method sees xxx${...} in the string content, it uses a specific prioritarization on how to render xxx${...}. the details of this process is a little lengthy and could be out of the reader's interest. But here is the short explanation.
+
+j6t distinguishes HTML tags and attributes by default. If xxx is an HTML tag, j6t renders xxx${...} as  tag. If xxx is an html attribute, j6t renders it as an attribute. If there is a class named xxx in the current context which has a render() method, j6t instantiates from the xxx class and calls its render() method. And if xxx is a function, j6t calls the function.
+
+It is not far to happen though that j6t acts incorrectly. To force something to be rendered as a tag we can prepend its name with an extra $ sign, like $mytag${...} and to force something to be rendered as an attribute we can prepend the name with ^ like ^myattr${...}.
 
 

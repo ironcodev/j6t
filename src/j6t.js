@@ -1229,15 +1229,38 @@ class Component {
 			const isj6tIdProvider = this.idProvider instanceof j6tIdProvider;
 			
 			if (isj6tIdProvider) {
-				this.idProvider.setState(this.idProviderState);
+				try {
+					this.idProvider.setState(this.idProviderState);
+				} catch (e) {
+					me.logger.fail(`idProvider.setState() failed.`);
+					me.logger.danger(e);
+				}
 			}
 			
-			this.preRender();
+			try {
+				this.preRender();
+			} catch (e) {
+				me.logger.fail(`preRender() failed.`);
+				me.logger.danger(e);
+				me.logger.warn(`component is an inconsistent state. resolve issue immediately.`);
+			}
 			
-			const html = this.render();
+			let html;
+			
+			try {
+				html = this.render();
+			} catch (e) {
+				me.logger.fail(`refresh() failed.`);
+				me.logger.danger(e);
+			}
 			
 			if (isj6tIdProvider) {
-				this.idProvider.restoreState();
+				try {
+					this.idProvider.restoreState();
+				} catch (e) {
+					me.logger.fail(`idProvider.restoreState() failed.`);
+					me.logger.danger(e);
+				}
 			}
 			
 			_jQuery('#' + this.id).replaceWith(html);
@@ -1245,22 +1268,36 @@ class Component {
 			this.bindEvents();
 		} else {
 			if (count == 0) {
-				me.logger.abort(`component with id '${this.id} was not found in the DOM. refresh() aborted.'`);
+				me.logger.abort(`component with id '${this.id}' was not found in the DOM. refresh() aborted.'`);
 			} else {
-				me.logger.abort(`more than one component with id '${this.id} was found in the DOM. refresh() aborted.'`);
+				me.logger.abort(`more than one component with id '${this.id}' was found in the DOM. refresh() aborted.'`);
 			}
 		}
 	}
 	bindEvents() {
-		this.children.forEach(child => {
+		const me = this;
+		
+		me.logger.info(`bindEvents()`);
+		me.logger.secondary(`children count = ${this.children.length}`);
+		
+		this.children.forEach((child, i) => {
 			if (util.isFunction(child.bindEvents)) {
+				me.logger.secondary(`binding child ${i} events ...`);
+				
 				child.bindEvents();
 			}
 		});
 		
-		this.events.forEach(e => {
+		me.logger.secondary(`binding current component's events. count = ${this.events.length}`);
+		
+		this.events.forEach((e, i) => {
+			me.logger.secondary(`binding event ${i} ...`);
+			me.logger.debug(e);
+			
 			if (_jQuery(e.target).length) {
 				_jQuery(e.target).bind(e.name, e.handler);
+			} else {
+				me.logger.warn(`event target '${e.target}' does not exist in the DOM. event binding skipped.`);
 			}
 		});
 	}
@@ -1317,6 +1354,9 @@ class BaseTag extends Component {
 		if (!util.isEmpty(this.props.arg)) {
 			this.props.html = this.arg
 		}
+		
+		this.logger.secondary(`BaseTag.ctor(): tagName = ${this.tagName}`);
+		this.logger.debug(this.props);
 	}
 	isValid() {
 		return validation.isValidTag(this.tagName);
@@ -1327,6 +1367,11 @@ class BaseTag extends Component {
 	getAttributes() {
 		let result = [];
 		let excludes = this.getExcludedAttributes();
+		let me = this;
+		
+		me.logger.info(`BaseTag.getAttributes()`);
+		me.logger.secondary(`excludes: ${excludes.length}`);
+		me.logger.debug(excludes);
 		
 		_jQuery.each(this.props, prop => {
 			if (util.isSomeString(prop) && !util.isNumeric(prop)) {
@@ -1334,9 +1379,14 @@ class BaseTag extends Component {
 				
 				if (validation.isValidAttributeName(prop) && excludes.indexOf(_prop) < 0) {
 					result.push(prop);
+				} else {
+					me.logger.secondary(`skipped property ${prop} because it doesn't have a valid name or is excluded.`);
 				}
 			}
 		});
+		
+		me.logger.secondary(`final properties: ${result.length}`);
+		me.logger.debug(result);
 		
 		return result;
 	}
@@ -1346,8 +1396,11 @@ class BaseTag extends Component {
 		this.ids.push(this.id);
 	}
 	render() {
+		let me = this;
+		
+		me.logger.info(`render()`);
+		
 		if (this.isValid()) {
-			let me = this;
 			
 			if (me.selfClose) {
 				return me.parse`<!${me.tagName}${me.getAttributes()}${prop => me.parse` @${prop}${me.props[prop]}`}/>`
@@ -1357,6 +1410,8 @@ class BaseTag extends Component {
 							   </!${me.tagName}>`
 			}
 		} else {
+			me.logger.abort(`component isn't valid. render aborted.`);
+			
 			return '';
 		}
 	}

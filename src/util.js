@@ -624,7 +624,7 @@ const htmlDecode = x => apply(x, (o, key, value) => {
 const htmlDecodeToString = x => join(htmlDecode(x), '', '');
 
 const range = (from, to) => {
-   let result = new Array(to - from);
+   let result = [];
 	
    for (let i = from; i < to; i++) {
 	 result.push(i)
@@ -632,7 +632,7 @@ const range = (from, to) => {
 	
    return result;
 }
-	
+
 export {
 	NotImplementedException	,
 	getEl					,

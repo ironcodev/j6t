@@ -432,9 +432,6 @@ class Component {
 			this.id = this.props.id;
 		}
 		
-		this.logger.secondary(`current id = '${this.id}'`);
-		this.logger.secondary(`check and generate new id if necessary ...`);
-		
 		this.id = this.idProvider.generate(this.id);
 		
 		if (!util.isSomeString(this.id) || this.id.indexOf(' ') >= 0) {
@@ -446,9 +443,19 @@ class Component {
 			}
 			
 			this.id = reservedIdProvider.generate(this.id);
-			
-			this.logger.secondary(`current id = '${this.id}'`);
 		}
+		
+		this.logger.secondary(`current id = '${this.id}'`);
+		this.logger.debug(`props:`);
+		
+		let __props = {...props};
+		
+		delete __props.logger;
+		delete __props.parent;
+		delete __props.container;
+		delete __props.idProvider;
+		
+		this.logger.debug(__props);
 		
 		this.idProviderState = null;
 		this.ids = [];
@@ -464,8 +471,6 @@ class Component {
 									}
 								*/
 		this.resources = [];
-		
-		this.logger.primary(`ctor() finished. current id = '${this.id}'`);
     }
 	generateId(id) {
 		return this.idProvider.generate(id);
@@ -473,9 +478,7 @@ class Component {
 	exec(command, value) {
 		let result = '';
 		
-		this.logger.info(`exec(command, value) ...`);
-		this.logger.debug(`		command = '${command}'`);
-		this.logger.debug(`		value`);
+		this.logger.info(`exec('${command}', value) ...`);
 		this.logger.debug(value);
 		
 		switch (command) {
@@ -548,9 +551,6 @@ class Component {
 				break;
 		}
 		
-		this.logger.debug(`		result = '${result}'`);
-		this.logger.info('exec finished');
-		
 		return result;
 	}
 	validateText(text) {
@@ -566,15 +566,13 @@ class Component {
 		let me = this;
 		const arr = [' ', '.', '>', ',', '[', ':', '+', '~', '\t'];
 		
-		this.logger.info(`parseCssSelector()`);
-		this.logger.debug(`		selector = '${selector}'`);
+		this.logger.info(`parseCssSelector('${selector}')`);
 		
 		function state1(ch, ended) {
 			if (arr.indexOf(ch) >= 0) {
 				if (util.isNumeric(value)) {
 					result += me.ids[parseInt(value)] + (ended ? '' : ch);
 					value = '';
-					state = 0;
 				} else {
 					if (value == '#' || value == '') {
 						result += me.id + (ended ? '' : ch);
@@ -582,6 +580,7 @@ class Component {
 						result += value + (ended ? '' : ch);
 					}
 				}
+				state = 0;
 			} else {
 				if (ended) {
 					result += value;
@@ -618,7 +617,6 @@ class Component {
 		}
 		
 		this.logger.debug(`		result = '${result}'`);
-		this.logger.info('parseCssSelector() finished');
 		
 		return result;
 	}
@@ -641,81 +639,65 @@ class Component {
 					directive: ''	// ^, #
 				}
 			*/
-			me.logger.info(`_evalName()`);
-			
 			function _create(str, props, ignoreOwner) {
 				let obj;
 				
-				me.logger.info(`_create()`);
 				me.logger.secondary(str);
-				me.logger.debug(props);
+				
+				let __props = {...props};
+		
+				delete __props.logger;
+				delete __props.parent;
+				delete __props.container;
+				delete __props.idProvider;
+				
+				me.logger.debug(__props);
 				
 				try {
 					obj = eval(str);
 					
-					me.logger.success(`object created`);
-					
 					if (!ignoreOwner) {
 						me.lastOwner = obj;
 					}
-				} catch (e) {
-					me.logger.danger(e);
-					me.logger.error(`creating object ${str} failed!`);
-				}
+				} catch (e) { }
 				
 				return obj;
 			}
 			
 			function _render(x) {
-				me.logger.info(`_render()`);
-				
 				if (util.isSomeObject(x)) {
 					if (!(x instanceof(BaseAttribute))) {
 						me.children.push(x);
-						
-						me.logger.secondary(`x was added to children`);
-					} else {
-						me.logger.secondary(`x is an attribute. it is not added to chidlren.`);
 					}
 					
 					if (util.isFunction(x.render)) {
-						me.logger.secondary(`rendering x ...`);
-						
 						if (x.idProvider instanceof j6tIdProvider) {
-							me.logger.secondary(`setting x.idProviderState from idProvider.getSate()`);
-							
 							x.idProviderState = x.idProvider.getState();
 							
-							me.logger.debug(`		x.idProviderState`);
-							me.logger.debug(x.idProviderState);
+							me.logger.debug(`		x.idProviderState = ${x.idProviderState}`);
 						}
 						
 						if (util.isFunction(x.preRender)) {
-							me.logger.secondary(`preRendering ...`);
-							
-							x.preRender();
+							try {
+								x.preRender();
+							} catch (e) {
+								me.logger.fail(`x.preRender failed!`);
+								me.logger.danger(e);
+							}
 						} else {
 							me.logger.secondary(`no preRender() found`);
 						}
-						
-						me.logger.secondary(`render started ...`);
 						
 						let html;
 						
 						try {
 							html = x.render();
 						} catch (e) {
-							me.logger.danger(e);
 							me.logger.fail(`render failed!`);
+							me.logger.danger(e);
 						}
 						
-						me.logger.secondary(`render finished`);
-						me.logger.info(`x rendered`);
-						
 						if (html) {
-							me.logger.debug(`render result:`);
-							me.logger.debug(html);
-							
 							result.push(html);
 						} else {
 							me.logger.warn(`x.render() didn't produce anything.`);
@@ -724,7 +706,7 @@ class Component {
 						me.logger.fail(`x didn't have a render() method. odd.`);
 					}
 				} else {
-					me.logger.secondary(`x is not an object`);
+					me.logger.error(`x is not an object`);
 				}
 			}
 			
@@ -743,11 +725,7 @@ class Component {
 			let props;
 			
 			do {
-				me.logger.debug(`		args.name = ${args.name}`);
-				
 				if (!validation.isValidId(args.name)) {
-					me.logger.secondary(`args.name is not a valid id. evaluation skipped.`);
-					
 					result.push(args.directive + util.htmlEncodeToString(args.name + (args.arg || '').toString()));
 					
 					break;
@@ -762,8 +740,6 @@ class Component {
 				}
 				
 				if (_check(`util.isFunction(${args.name})`)) {
-					me.logger.secondary(`function/class ${args.name} found.`);
-					
 					obj = _create(`new ${args.name}(props)`, props);
 					
 					dynamicRender = args.name;
@@ -771,8 +747,6 @@ class Component {
 					break;
 				}
 				if (_check(`util.isFunction(${args.name}Element)`)) {
-					me.logger.secondary(`function/class ${args.name}Element found.`);
-					
 					obj = _create(`new ${args.name}Element(props)`, props);
 					
 					dynamicRender = `${args.name}Element`;
@@ -781,8 +755,6 @@ class Component {
 				}
 				
 				if (_check(`util.isFunction(${args.name}Tag)`)) {
-					me.logger.secondary(`function/class ${args.name}Tag found.`);
-					
 					obj = _create(`new ${args.name}Tag(props)`, props);
 					
 					dynamicRender = `${args.name}Tag`;
@@ -791,8 +763,6 @@ class Component {
 				}
 				
 				if (_check(`util.isFunction(${args.name}Attribute)`)) {
-					me.logger.secondary(`function/class ${args.name}Attribute found.`);
-					
 					let currentIdIsForMe = false;
 					
 					if (args.name == 'id') {
@@ -843,7 +813,7 @@ class Component {
 					
 						break;
 					} else {
-						me.logger.warn(`component ids list is empty. cannot create event ${args.name}.`);
+						me.logger.warn(`component ids list is empty. cannot create event '${args.name}'.`);
 					}
 				}
 				
@@ -854,8 +824,8 @@ class Component {
 						try {
 							obj = new BaseAttribute({ attributeName: args.name, attributeValue: args.arg, container: me });
 						} catch (e) {
-							me.logger.danger(e);
 							me.logger.fail(`attribute creation failed!`);
+							me.logger.danger(e);
 						}
 					} else {
 						me.logger.secondary(`${args.name} evaluated as a tag.`);
@@ -863,8 +833,8 @@ class Component {
 						try {
 							obj = new BaseTag({ tagName: args.name, ...props });
 						} catch (e) {
-							me.logger.danger(e);
 							me.logger.fail(`tag creation failed!`);
+							me.logger.danger(e);
 						}
 					}
 					
@@ -877,8 +847,8 @@ class Component {
 					try {
 						obj = new BaseTag({ tagName: args.name, ...props });
 					} catch (e) {
-						me.logger.danger(e);
 						me.logger.fail(`tag creation failed!`);
+						me.logger.danger(e);
 					}
 				} else {
 					me.logger.secondary(`${args.name} evaluated as an attribute.`);
@@ -886,27 +856,25 @@ class Component {
 					try {
 						obj = new BaseAttribute({ attributeName: args.name, attributeValue: args.arg, container: me });
 					} catch (e) {
-						me.logger.danger(e);
 						me.logger.fail(`attribute creation failed!`);
+						me.logger.danger(e);
 					}
 				}
 			} while (false);
 			
 			if (!util.isSomeObject(obj) && util.isSomeString(dynamicRender)) {
-				me.logger.secondary(`${args.name} was a function, not a class. Using DynamicComponent to invoke it ...`);
+				me.logger.secondary(`using DynamicComponent to invoke ${args.name} ...`);
 				
 				obj = _create(`new DynamicComponent(props)`, props);
 				
 				if (util.isSomeObject(obj)) {
 					eval(`obj.render = ${dynamicRender}`);
 				} else {
-					me.logger.fail(`creating DynamicComponent failed.`);
+					me.logger.fail(`creating DynamicComponent failed!`);
 				}
 			}
 			
 			if (util.isSomeObject(obj) && !util.isSomeObject(obj.props)) {
-				me.logger.secondary(`a default empty props specified for the component.`);
-				
 				obj.props = {};
 			}
 			
@@ -916,68 +884,47 @@ class Component {
 			let _result = '';
 			let _value = expressions[index];
 			
-			me.logger.info(`_evaluateExpression()`);
-			me.logger.debug(`index = ${index}`);
-			me.logger.debug(`callExpression = ${callExpression}`);
-			me.logger.debug(args);
-			
 			if (util.isFunction(_value)) {
 				if (callExpression) {
-					try {
-						if (util.isArray(arr)) {
-							me.logger.info(`existing array found with ${arr.length} items.`);
+					if (util.isArray(arr)) {
+						_result = [];
+						
+						arr.forEach((a, i) => {
+							let row = '';
 							
-							_result = [];
-							arr.forEach((a, i) => {
-								let row = '';
-								
-								me.logger.debug(`i = ${i}`);
-								me.logger.debug(a);
-								
-								try {
-									row = _value(a, i, me);
-								} catch (e) {
-									me.logger.danger(e);
-									me.logger.fail(`calling interpolation expression ${index} function for array item ${i} failed.`);
-								}
-								
-								if (row) {
-									_result.push(row);
-								} else {
-									me.logger.secondary(`expression ${index} for array item ${i} had no result.`);
-								}
-							});
+							try {
+								row = _value(a, i, me);
+							} catch (e) {
+								me.logger.fail(`calling interpolation expression ${index} function for array item ${i} failed.`);
+								me.logger.danger(e);
+							}
 							
-							arr = null;
-							
-							me.logger.secondary(`array was reset.`);
-							me.logger.secondary(` partial result contains ${_result.length} items.`);
-							
-							_result = _result.join('');
-							
-							me.logger.debug(_result);
-						} else {
-							let _args = [ me, ...args ];
-							
+							if (row) {
+								_result.push(row);
+							}
+						});
+						
+						arr = null;
+						
+						_result = _result.join('');
+					} else {
+						let _args = [ me, ...args ];
+						
+						try {
 							_result = _value.apply(null, _args);
+						} catch (e) {
+							me.logger.fail(`calling interpolation expression ${index} function failed.`);
+							me.logger.danger(e);
 						}
-					} catch (err) {
-						me.logger.danger(err);
-						me.logger.fail(`calling interpolation expression ${index} function failed.`);
 					}
 				} else {
 					_result = _value;
 				}
 			} else if (util.isArray(_value)) {
-				me.logger.secondary(`array with ${_value.length} items was detected.`);
-				
 				arr = _value;
 			} else {
 				_result = _value;
 			}
-			
-			me.logger.debug(`		expression result:`);
-			me.logger.debug(_result);
 			
 			return _result;
 		}
@@ -986,9 +933,6 @@ class Component {
 		
 		while (i < literals.length) {
 			let literal = literals[i];
-			
-			me.logger.secondary(`iteration ${i}`);
-			me.logger.debug(`	literal: ${literal}`);
 			
 			if (i < literals.length - 1) {
 				let lastWhitespaceIndex = -1;
@@ -1006,14 +950,6 @@ class Component {
 				literalAfterWhitespace = lastWhitespaceIndex >= 0 ? literal.substr(lastWhitespaceIndex + 1) : literal;
 				firstCh = literalAfterWhitespace ? literalAfterWhitespace[0]: '';
 				lastCh = literalAfterWhitespace ? literalAfterWhitespace[literalAfterWhitespace.length - 1]: '';
-				
-				me.logger.debug(`
-		lastWhitespaceIndex: ${lastWhitespaceIndex}
-		literalBeforeWhitespace: ${literalBeforeWhitespace}
-		literalAfterWhitespace: ${literalAfterWhitespace}
-		firstCh: ${firstCh}
-		lastCh: ${lastCh}
-				`);
 				
 				if (['#', '^', '$', '*'].indexOf(firstCh) < 0) {
 														/* currently we only support #, ^ and $, but in the future we may
@@ -1061,12 +997,6 @@ class Component {
 				if (lastCh && literal.length > 1) {
 					result.push(literal.substr(0, literal.length - 1));
 				}
-				
-				me.logger.debug(`
-		lastCh: ${lastCh}
-		name: ${name}
-		starIndex: ${starIndex}
-		command: ${command}`);
 				
 				switch (lastCh)
 				{
@@ -1154,6 +1084,7 @@ class Component {
 							value = _evaluateExpression(i, command[command.length - 1] != '*', command);
 							
 							let execResult;
+							
 							try {
 								execResult = exec(command, value);
 							} catch (e) {
@@ -1190,8 +1121,6 @@ class Component {
 			i++;
 		}
 
-		me.logger.secondary(`calling potential functions in result ...`);
-		
 		for (let i = 0; i < result.length; i++) {
 			if (util.isFunction(result[i])) {
 				result[i] = result[i]();
@@ -1199,7 +1128,7 @@ class Component {
 		}
 		
 		if (!me.hasWrapper) {
-			me.logger.secondary(`component has no wrapper. default wrapper was added.`);
+			me.logger.warn(`component ${this.constructor.name} has no wrapper. default wrapper was added.`);
 			
 			result.splice(0, 0, `<div id="${me.id}">`);
 			result.push(`</div>`);
@@ -1209,8 +1138,6 @@ class Component {
 	}
 	preRender() {
 		const me = this;
-		
-		me.logger.info(`preRender()`);
 		
 		this.children = [];
 		this.ids = [];
@@ -1282,8 +1209,6 @@ class Component {
 		
 		this.children.forEach((child, i) => {
 			if (util.isFunction(child.bindEvents)) {
-				me.logger.secondary(`binding child ${i} events ...`);
-				
 				child.bindEvents();
 			}
 		});
@@ -1326,6 +1251,16 @@ class DynamicComponent extends Component {
 class BaseElement {
 	constructor(props) {
 		_jQuery.extend(this, util.isSomeObject(props) ? props : {});
+		
+		if (!(this.logger instanceof(BaseLogger))) {
+			if (util.isSomeObject(this.parent) && this.parent.logger instanceof(BaseLogger)) {
+				this.logger = this.parent.logger;
+			} else if (util.isSomeObject(this.container) && this.container.logger instanceof(BaseLogger)) {
+				this.logger = this.container.logger;
+			} else {
+				this.logger = new NullLogger();
+			}
+		}
 	}
 	render() {
 		util.NotImplementedException(`${this.constructor.name}.render()`)
@@ -1369,23 +1304,17 @@ class BaseTag extends Component {
 		let excludes = this.getExcludedAttributes();
 		let me = this;
 		
-		me.logger.info(`BaseTag.getAttributes()`);
-		me.logger.secondary(`excludes: ${excludes.length}`);
-		me.logger.debug(excludes);
-		
 		_jQuery.each(this.props, prop => {
 			if (util.isSomeString(prop) && !util.isNumeric(prop)) {
 				let _prop = prop.toLowerCase();
 				
 				if (validation.isValidAttributeName(prop) && excludes.indexOf(_prop) < 0) {
 					result.push(prop);
-				} else {
-					me.logger.secondary(`skipped property ${prop} because it doesn't have a valid name or is excluded.`);
 				}
 			}
 		});
 		
-		me.logger.secondary(`final properties: ${result.length}`);
+		me.logger.secondary(`getAttributes(): final properties count = ${result.length}`);
 		me.logger.debug(result);
 		
 		return result;
@@ -1398,8 +1327,6 @@ class BaseTag extends Component {
 	render() {
 		let me = this;
 		
-		me.logger.info(`render()`);
-		
 		if (this.isValid()) {
 			
 			if (me.selfClose) {
@@ -1410,7 +1337,7 @@ class BaseTag extends Component {
 							   </!${me.tagName}>`
 			}
 		} else {
-			me.logger.abort(`component isn't valid. render aborted.`);
+			me.logger.abort(`tag ${this.constructor.name} isn't valid. render aborted.`);
 			
 			return '';
 		}
@@ -1650,13 +1577,10 @@ class idAttribute extends BaseAttribute {
 			let givenId = this.attributeValue;
 			
 			this.attributeValue = this.container.idProvider.generate(givenId);
-			// this.container.lastId = this.attributeValue; we don't support me.lastId anymore
 			
 			if (util.isNumeric(givenId)) {
 				this.container.ids[givenId] = this.attributeValue;
-			} /* else if (givenId === '') {	// we don't support lastId anymore
-				this.container.ids.push(this.container.lastId);
-			}*/
+			}
 		}
 	}
 }
@@ -1763,11 +1687,14 @@ class bindElement extends BaseElement {
 		}
 	}
 	render() {
+		this.logger.debug(`event: '${this.event}', target: '${this.target}', container: '${(util.isSomeObject(this.container) ? 'ok': 'error')}'`);
+		
 		if (validation.isValidEvent(this.event)
 			&& util.isSomeString(this.target)
 			&& util.isFunction(this.handler)
 			&& util.isSomeObject(this.container)
 			&& util.isArray(this.container.events)) {
+				
 			let e = this.container.events.find(e => e.name == this.event
 													&& e.target == this.target
 													&& e.handler == this.handler);
@@ -1778,6 +1705,8 @@ class bindElement extends BaseElement {
 					name: this.event,
 					handler: this.handler
 				});
+			} else {
+				this.logger.error(`the same event and handler already bound for the same element`);
 			}
 		}
 		

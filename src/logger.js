@@ -209,18 +209,71 @@ class DomLogger extends BaseLogger {
 		if (!util.isSomeString(this.space)) {
 			this.space = '   ';
 		}
+		if (!_jQuery.isFunction(this.onLog)) {
+			this.onLog = () => {};
+		}
+		
+		this._target = _jQuery(this.target);
 	}
 	_logInternal(log) {
 		if (this.isValidLog(log)) {
-			let target = _jQuery(this.target);
-			
-			if (target && target.length) {
-				target.append(JSON.stringify(log, this.replacer, this.space));
+			this.onLog(log)
+		}
+	}
+}
+class DomJsonLogger extends DomLogger {
+	constructor(props) {
+		super(props);
+	}
+	onLog(log) {
+		if (this._target && this._target.length) {
+			try {
+				this._target.append(JSON.stringify(log, this.replacer, this.space));
+			} catch (e) {
+				this._target.append(JSON.stringify('error serializing log', this.replacer, this.space));
 			}
 		}
 	}
 }
-
+class DomTableLogger extends DomLogger {
+	constructor(props) {
+		super(props);
+		
+		if (this._target && this._target.find('thead').length == 0) {
+			this._target.append(`
+				<thead>
+					<th>Date</th>
+					<th>Type</th>
+					<th>Data</th>
+				</thead>
+			`)
+		}
+		if (this._target && this._target.find('tbody').length == 0) {
+			this._target.append(`<tbody></thead>`)
+		}
+	}
+	onLog(log) {
+		let data = '';
+		try {
+			if (typeof log.data == 'string' || typeof log.data == 'number') {
+				data = log.data
+			} else {
+				data = util.htmlEncodeToString(JSON.stringify(log.data, this.replacer, this.space))
+			}
+		} catch (e) {
+			data = 'error serializing data'
+		}
+		if (this._target && this._target.length) {
+			this._target.find('tbody').append(`
+				<tr>
+					<td>${log.date.toLocaleString()}</td>
+					<td>${log.type}</td>
+					<td>${data}</td>
+				</tr>
+			`);
+		}
+	}
+}
 export {
 	logType,
 	logFilter,
@@ -229,5 +282,7 @@ export {
 	ConsoleLogger,
 	StoreLogger,
 	StringLogger,
-	DomLogger
+	DomLogger,
+	DomJsonLogger,
+	DomTableLogger
 }

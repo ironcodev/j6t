@@ -565,8 +565,6 @@ function () {
       this.id = this.props.id;
     }
 
-    this.logger.secondary("current id = '".concat(this.id, "'"));
-    this.logger.secondary("check and generate new id if necessary ...");
     this.id = this.idProvider.generate(this.id);
 
     if (!util.isSomeString(this.id) || this.id.indexOf(' ') >= 0) {
@@ -578,9 +576,18 @@ function () {
       }
 
       this.id = reservedIdProvider.generate(this.id);
-      this.logger.secondary("current id = '".concat(this.id, "'"));
     }
 
+    this.logger.secondary("current id = '".concat(this.id, "'"));
+    this.logger.debug("props:");
+
+    var __props = _objectSpread({}, props);
+
+    delete __props.logger;
+    delete __props.parent;
+    delete __props.container;
+    delete __props.idProvider;
+    this.logger.debug(__props);
     this.idProviderState = null;
     this.ids = [];
     this.lastId = ''; // not used anymore
@@ -598,7 +605,6 @@ function () {
     */
 
     this.resources = [];
-    this.logger.primary("ctor() finished. current id = '".concat(this.id, "'"));
   }
 
   _createClass(Component, [{
@@ -610,9 +616,7 @@ function () {
     key: "exec",
     value: function exec(command, value) {
       var result = '';
-      this.logger.info("exec(command, value) ...");
-      this.logger.debug("\t\tcommand = '".concat(command, "'"));
-      this.logger.debug("\t\tvalue");
+      this.logger.info("exec('".concat(command, "', value) ..."));
       this.logger.debug(value);
 
       switch (command) {
@@ -701,8 +705,6 @@ function () {
           break;
       }
 
-      this.logger.debug("\t\tresult = '".concat(result, "'"));
-      this.logger.info('exec finished');
       return result;
     }
   }, {
@@ -723,15 +725,13 @@ function () {
       var value = '';
       var me = this;
       var arr = [' ', '.', '>', ',', '[', ':', '+', '~', '\t'];
-      this.logger.info("parseCssSelector()");
-      this.logger.debug("\t\tselector = '".concat(selector, "'"));
+      this.logger.info("parseCssSelector('".concat(selector, "')"));
 
       function state1(ch, ended) {
         if (arr.indexOf(ch) >= 0) {
           if (util.isNumeric(value)) {
             result += me.ids[parseInt(value)] + (ended ? '' : ch);
             value = '';
-            state = 0;
           } else {
             if (value == '#' || value == '') {
               result += me.id + (ended ? '' : ch);
@@ -739,6 +739,8 @@ function () {
               result += value + (ended ? '' : ch);
             }
           }
+
+          state = 0;
         } else {
           if (ended) {
             result += value;
@@ -776,7 +778,6 @@ function () {
       }
 
       this.logger.debug("\t\tresult = '".concat(result, "'"));
-      this.logger.info('parseCssSelector() finished');
       return result;
     }
   }, {
@@ -803,73 +804,62 @@ function () {
         		directive: ''	// ^, #
         	}
         */
-        me.logger.info("_evalName()");
-
         function _create(str, props, ignoreOwner) {
           var obj;
-          me.logger.info("_create()");
           me.logger.secondary(str);
-          me.logger.debug(props);
+
+          var __props = _objectSpread({}, props);
+
+          delete __props.logger;
+          delete __props.parent;
+          delete __props.container;
+          delete __props.idProvider;
+          me.logger.debug(__props);
 
           try {
             obj = eval(str);
-            me.logger.success("object created");
 
             if (!ignoreOwner) {
               me.lastOwner = obj;
             }
-          } catch (e) {
-            me.logger.danger(e);
-            me.logger.error("creating object ".concat(str, " failed!"));
-          }
+          } catch (e) {}
 
           return obj;
         }
 
         function _render(x) {
-          me.logger.info("_render()");
-
           if (util.isSomeObject(x)) {
             if (!(x instanceof BaseAttribute)) {
               me.children.push(x);
-              me.logger.secondary("x was added to children");
-            } else {
-              me.logger.secondary("x is an attribute. it is not added to chidlren.");
             }
 
             if (util.isFunction(x.render)) {
-              me.logger.secondary("rendering x ...");
-
               if (x.idProvider instanceof j6tIdProvider) {
-                me.logger.secondary("setting x.idProviderState from idProvider.getSate()");
                 x.idProviderState = x.idProvider.getState();
-                me.logger.debug("\t\tx.idProviderState");
-                me.logger.debug(x.idProviderState);
+                me.logger.debug("\t\tx.idProviderState = ".concat(x.idProviderState));
               }
 
               if (util.isFunction(x.preRender)) {
-                me.logger.secondary("preRendering ...");
-                x.preRender();
+                try {
+                  x.preRender();
+                } catch (e) {
+                  me.logger.fail("x.preRender failed!");
+                  me.logger.danger(e);
+                }
               } else {
                 me.logger.secondary("no preRender() found");
               }
 
-              me.logger.secondary("render started ...");
               var html;
 
               try {
                 html = x.render();
               } catch (e) {
-                me.logger.danger(e);
                 me.logger.fail("render failed!");
+                me.logger.danger(e);
               }
 
-              me.logger.secondary("render finished");
-              me.logger.info("x rendered");
-
               if (html) {
-                me.logger.debug("render result:");
-                me.logger.debug(html);
                 result.push(html);
               } else {
                 me.logger.warn("x.render() didn't produce anything.");
@@ -878,7 +868,7 @@ function () {
               me.logger.fail("x didn't have a render() method. odd.");
             }
           } else {
-            me.logger.secondary("x is not an object");
+            me.logger.error("x is not an object");
           }
         }
 
@@ -897,10 +887,7 @@ function () {
         var props;
 
         do {
-          me.logger.debug("\t\targs.name = ".concat(args.name));
-
           if (!validation.isValidId(args.name)) {
-            me.logger.secondary("args.name is not a valid id. evaluation skipped.");
             result.push(args.directive + util.htmlEncodeToString(args.name + (args.arg || '').toString()));
             break;
           }
@@ -916,28 +903,24 @@ function () {
           }
 
           if (_check("util.isFunction(".concat(args.name, ")"))) {
-            me.logger.secondary("function/class ".concat(args.name, " found."));
             obj = _create("new ".concat(args.name, "(props)"), props);
             dynamicRender = args.name;
             break;
           }
 
           if (_check("util.isFunction(".concat(args.name, "Element)"))) {
-            me.logger.secondary("function/class ".concat(args.name, "Element found."));
             obj = _create("new ".concat(args.name, "Element(props)"), props);
             dynamicRender = "".concat(args.name, "Element");
             break;
           }
 
           if (_check("util.isFunction(".concat(args.name, "Tag)"))) {
-            me.logger.secondary("function/class ".concat(args.name, "Tag found."));
             obj = _create("new ".concat(args.name, "Tag(props)"), props);
             dynamicRender = "".concat(args.name, "Tag");
             break;
           }
 
           if (_check("util.isFunction(".concat(args.name, "Attribute)"))) {
-            me.logger.secondary("function/class ".concat(args.name, "Attribute found."));
             var currentIdIsForMe = false;
 
             if (args.name == 'id') {
@@ -982,7 +965,7 @@ function () {
               });
               break;
             } else {
-              me.logger.warn("component ids list is empty. cannot create event ".concat(args.name, "."));
+              me.logger.warn("component ids list is empty. cannot create event '".concat(args.name, "'."));
             }
           }
 
@@ -997,8 +980,8 @@ function () {
                   container: me
                 });
               } catch (e) {
-                me.logger.danger(e);
                 me.logger.fail("attribute creation failed!");
+                me.logger.danger(e);
               }
             } else {
               me.logger.secondary("".concat(args.name, " evaluated as a tag."));
@@ -1008,8 +991,8 @@ function () {
                   tagName: args.name
                 }, props));
               } catch (e) {
-                me.logger.danger(e);
                 me.logger.fail("tag creation failed!");
+                me.logger.danger(e);
               }
             }
 
@@ -1024,8 +1007,8 @@ function () {
                 tagName: args.name
               }, props));
             } catch (e) {
-              me.logger.danger(e);
               me.logger.fail("tag creation failed!");
+              me.logger.danger(e);
             }
           } else {
             me.logger.secondary("".concat(args.name, " evaluated as an attribute."));
@@ -1037,25 +1020,24 @@ function () {
                 container: me
               });
             } catch (e) {
-              me.logger.danger(e);
               me.logger.fail("attribute creation failed!");
+              me.logger.danger(e);
             }
           }
         } while (false);
 
         if (!util.isSomeObject(obj) && util.isSomeString(dynamicRender)) {
-          me.logger.secondary("".concat(args.name, " was a function, not a class. Using DynamicComponent to invoke it ..."));
+          me.logger.secondary("using DynamicComponent to invoke ".concat(args.name, " ..."));
           obj = _create("new DynamicComponent(props)", props);
 
           if (util.isSomeObject(obj)) {
             eval("obj.render = ".concat(dynamicRender));
           } else {
-            me.logger.fail("creating DynamicComponent failed.");
+            me.logger.fail("creating DynamicComponent failed!");
           }
         }
 
         if (util.isSomeObject(obj) && !util.isSomeObject(obj.props)) {
-          me.logger.secondary("a default empty props specified for the component.");
           obj.props = {};
         }
 
@@ -1065,66 +1047,50 @@ function () {
       function _evaluateExpression(index, callExpression) {
         var _result = '';
         var _value = expressions[index];
-        me.logger.info("_evaluateExpression()");
-        me.logger.debug("index = ".concat(index));
-        me.logger.debug("callExpression = ".concat(callExpression));
-
-        for (var _len2 = arguments.length, args = new Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-          args[_key2 - 2] = arguments[_key2];
-        }
-
-        me.logger.debug(args);
 
         if (util.isFunction(_value)) {
           if (callExpression) {
-            try {
-              if (util.isArray(arr)) {
-                me.logger.info("existing array found with ".concat(arr.length, " items."));
-                _result = [];
-                arr.forEach(function (a, i) {
-                  var row = '';
-                  me.logger.debug("i = ".concat(i));
-                  me.logger.debug(a);
+            if (util.isArray(arr)) {
+              _result = [];
+              arr.forEach(function (a, i) {
+                var row = '';
 
-                  try {
-                    row = _value(a, i, me);
-                  } catch (e) {
-                    me.logger.danger(e);
-                    me.logger.fail("calling interpolation expression ".concat(index, " function for array item ").concat(i, " failed."));
-                  }
+                try {
+                  row = _value(a, i, me);
+                } catch (e) {
+                  me.logger.fail("calling interpolation expression ".concat(index, " function for array item ").concat(i, " failed."));
+                  me.logger.danger(e);
+                }
 
-                  if (row) {
-                    _result.push(row);
-                  } else {
-                    me.logger.secondary("expression ".concat(index, " for array item ").concat(i, " had no result."));
-                  }
-                });
-                arr = null;
-                me.logger.secondary("array was reset.");
-                me.logger.secondary(" partial result contains ".concat(_result.length, " items."));
-                _result = _result.join('');
-                me.logger.debug(_result);
-              } else {
-                var _args = [me].concat(args);
-
-                _result = _value.apply(null, _args);
+                if (row) {
+                  _result.push(row);
+                }
+              });
+              arr = null;
+              _result = _result.join('');
+            } else {
+              for (var _len2 = arguments.length, args = new Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+                args[_key2 - 2] = arguments[_key2];
               }
-            } catch (err) {
-              me.logger.danger(err);
-              me.logger.fail("calling interpolation expression ".concat(index, " function failed."));
+
+              var _args = [me].concat(args);
+
+              try {
+                _result = _value.apply(null, _args);
+              } catch (e) {
+                me.logger.fail("calling interpolation expression ".concat(index, " function failed."));
+                me.logger.danger(e);
+              }
             }
           } else {
             _result = _value;
           }
         } else if (util.isArray(_value)) {
-          me.logger.secondary("array with ".concat(_value.length, " items was detected."));
           arr = _value;
         } else {
           _result = _value;
         }
 
-        me.logger.debug("\t\texpression result:");
-        me.logger.debug(_result);
         return _result;
       }
 
@@ -1132,8 +1098,6 @@ function () {
 
       while (i < literals.length) {
         var literal = literals[i];
-        me.logger.secondary("iteration ".concat(i));
-        me.logger.debug("\tliteral: ".concat(literal));
 
         if (i < literals.length - 1) {
           var lastWhitespaceIndex = -1;
@@ -1150,7 +1114,6 @@ function () {
           literalAfterWhitespace = lastWhitespaceIndex >= 0 ? literal.substr(lastWhitespaceIndex + 1) : literal;
           firstCh = literalAfterWhitespace ? literalAfterWhitespace[0] : '';
           lastCh = literalAfterWhitespace ? literalAfterWhitespace[literalAfterWhitespace.length - 1] : '';
-          me.logger.debug("\n\t\tlastWhitespaceIndex: ".concat(lastWhitespaceIndex, "\n\t\tliteralBeforeWhitespace: ").concat(literalBeforeWhitespace, "\n\t\tliteralAfterWhitespace: ").concat(literalAfterWhitespace, "\n\t\tfirstCh: ").concat(firstCh, "\n\t\tlastCh: ").concat(lastCh, "\n\t\t\t\t"));
 
           if (['#', '^', '$', '*'].indexOf(firstCh) < 0) {
             /* currently we only support #, ^ and $, but in the future we may
@@ -1196,8 +1159,6 @@ function () {
           if (lastCh && literal.length > 1) {
             result.push(literal.substr(0, literal.length - 1));
           }
-
-          me.logger.debug("\n\t\tlastCh: ".concat(lastCh, "\n\t\tname: ").concat(name, "\n\t\tstarIndex: ").concat(starIndex, "\n\t\tcommand: ").concat(command));
 
           switch (lastCh) {
             case '!':
@@ -1332,8 +1293,6 @@ function () {
         i++;
       }
 
-      me.logger.secondary("calling potential functions in result ...");
-
       for (var _i = 0; _i < result.length; _i++) {
         if (util.isFunction(result[_i])) {
           result[_i] = result[_i]();
@@ -1341,7 +1300,7 @@ function () {
       }
 
       if (!me.hasWrapper) {
-        me.logger.secondary("component has no wrapper. default wrapper was added.");
+        me.logger.warn("component ".concat(this.constructor.name, " has no wrapper. default wrapper was added."));
         result.splice(0, 0, "<div id=\"".concat(me.id, "\">"));
         result.push("</div>");
       }
@@ -1352,7 +1311,6 @@ function () {
     key: "preRender",
     value: function preRender() {
       var me = this;
-      me.logger.info("preRender()");
       this.children = [];
       this.ids = [];
     }
@@ -1424,7 +1382,6 @@ function () {
       me.logger.secondary("children count = ".concat(this.children.length));
       this.children.forEach(function (child, i) {
         if (util.isFunction(child.bindEvents)) {
-          me.logger.secondary("binding child ".concat(i, " events ..."));
           child.bindEvents();
         }
       });
@@ -1487,6 +1444,16 @@ function () {
     _classCallCheck(this, BaseElement);
 
     _jquery["default"].extend(this, util.isSomeObject(props) ? props : {});
+
+    if (!(this.logger instanceof _logger.BaseLogger)) {
+      if (util.isSomeObject(this.parent) && this.parent.logger instanceof _logger.BaseLogger) {
+        this.logger = this.parent.logger;
+      } else if (util.isSomeObject(this.container) && this.container.logger instanceof _logger.BaseLogger) {
+        this.logger = this.container.logger;
+      } else {
+        this.logger = new _logger.NullLogger();
+      }
+    }
   }
 
   _createClass(BaseElement, [{
@@ -1557,9 +1524,6 @@ function (_Component2) {
       var result = [];
       var excludes = this.getExcludedAttributes();
       var me = this;
-      me.logger.info("BaseTag.getAttributes()");
-      me.logger.secondary("excludes: ".concat(excludes.length));
-      me.logger.debug(excludes);
 
       _jquery["default"].each(this.props, function (prop) {
         if (util.isSomeString(prop) && !util.isNumeric(prop)) {
@@ -1567,13 +1531,11 @@ function (_Component2) {
 
           if (validation.isValidAttributeName(prop) && excludes.indexOf(_prop) < 0) {
             result.push(prop);
-          } else {
-            me.logger.secondary("skipped property ".concat(prop, " because it doesn't have a valid name or is excluded."));
           }
         }
       });
 
-      me.logger.secondary("final properties: ".concat(result.length));
+      me.logger.secondary("getAttributes(): final properties count = ".concat(result.length));
       me.logger.debug(result);
       return result;
     }
@@ -1588,7 +1550,6 @@ function (_Component2) {
     key: "render",
     value: function render() {
       var me = this;
-      me.logger.info("render()");
 
       if (this.isValid()) {
         if (me.selfClose) {
@@ -1601,7 +1562,7 @@ function (_Component2) {
           }, me.validateText(me.props.text), me.validateHtml(me.props.html), me.tagName);
         }
       } else {
-        me.logger.abort("component isn't valid. render aborted.");
+        me.logger.abort("tag ".concat(this.constructor.name, " isn't valid. render aborted."));
         return '';
       }
     }
@@ -2050,15 +2011,11 @@ function (_BaseAttribute3) {
 
     if (util.isSomeObject(_this13.container)) {
       var givenId = _this13.attributeValue;
-      _this13.attributeValue = _this13.container.idProvider.generate(givenId); // this.container.lastId = this.attributeValue; we don't support me.lastId anymore
+      _this13.attributeValue = _this13.container.idProvider.generate(givenId);
 
       if (util.isNumeric(givenId)) {
         _this13.container.ids[givenId] = _this13.attributeValue;
       }
-      /* else if (givenId === '') {	// we don't support lastId anymore
-      this.container.ids.push(this.container.lastId);
-      }*/
-
     }
 
     return _this13;
@@ -2217,6 +2174,8 @@ function (_BaseElement2) {
     value: function render() {
       var _this18 = this;
 
+      this.logger.debug("event: '".concat(this.event, "', target: '").concat(this.target, "', container: '").concat(util.isSomeObject(this.container) ? 'ok' : 'error', "'"));
+
       if (validation.isValidEvent(this.event) && util.isSomeString(this.target) && util.isFunction(this.handler) && util.isSomeObject(this.container) && util.isArray(this.container.events)) {
         var e = this.container.events.find(function (e) {
           return e.name == _this18.event && e.target == _this18.target && e.handler == _this18.handler;
@@ -2228,6 +2187,8 @@ function (_BaseElement2) {
             name: this.event,
             handler: this.handler
           });
+        } else {
+          this.logger.error("the same event and handler already bound for the same element");
         }
       }
 
@@ -2262,7 +2223,7 @@ exports["default"] = _default;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.DomLogger = exports.StringLogger = exports.StoreLogger = exports.ConsoleLogger = exports.NullLogger = exports.BaseLogger = exports.logFilter = exports.logType = void 0;
+exports.DomTableLogger = exports.DomJsonLogger = exports.DomLogger = exports.StringLogger = exports.StoreLogger = exports.ConsoleLogger = exports.NullLogger = exports.BaseLogger = exports.logFilter = exports.logType = void 0;
 
 var _jquery = _interopRequireDefault(require("./jquery.js"));
 
@@ -2849,6 +2810,11 @@ function (_BaseLogger4) {
       _this5.space = '   ';
     }
 
+    if (!_jquery["default"].isFunction(_this5.onLog)) {
+      _this5.onLog = function () {};
+    }
+
+    _this5._target = (0, _jquery["default"])(_this5.target);
     return _this5;
   }
 
@@ -2856,11 +2822,7 @@ function (_BaseLogger4) {
     key: "_logInternal",
     value: function _logInternal(log) {
       if (this.isValidLog(log)) {
-        var target = (0, _jquery["default"])(this.target);
-
-        if (target && target.length) {
-          target.append(JSON.stringify(log, this.replacer, this.space));
-        }
+        this.onLog(log);
       }
     }
   }]);
@@ -2869,6 +2831,84 @@ function (_BaseLogger4) {
 }(BaseLogger);
 
 exports.DomLogger = DomLogger;
+
+var DomJsonLogger =
+/*#__PURE__*/
+function (_DomLogger) {
+  _inherits(DomJsonLogger, _DomLogger);
+
+  function DomJsonLogger(props) {
+    _classCallCheck(this, DomJsonLogger);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(DomJsonLogger).call(this, props));
+  }
+
+  _createClass(DomJsonLogger, [{
+    key: "onLog",
+    value: function onLog(log) {
+      if (this._target && this._target.length) {
+        try {
+          this._target.append(JSON.stringify(log, this.replacer, this.space));
+        } catch (e) {
+          this._target.append(JSON.stringify('error serializing log', this.replacer, this.space));
+        }
+      }
+    }
+  }]);
+
+  return DomJsonLogger;
+}(DomLogger);
+
+exports.DomJsonLogger = DomJsonLogger;
+
+var DomTableLogger =
+/*#__PURE__*/
+function (_DomLogger2) {
+  _inherits(DomTableLogger, _DomLogger2);
+
+  function DomTableLogger(props) {
+    var _this6;
+
+    _classCallCheck(this, DomTableLogger);
+
+    _this6 = _possibleConstructorReturn(this, _getPrototypeOf(DomTableLogger).call(this, props));
+
+    if (_this6._target && _this6._target.find('thead').length == 0) {
+      _this6._target.append("\n\t\t\t\t<thead>\n\t\t\t\t\t<th>Date</th>\n\t\t\t\t\t<th>Type</th>\n\t\t\t\t\t<th>Data</th>\n\t\t\t\t</thead>\n\t\t\t");
+    }
+
+    if (_this6._target && _this6._target.find('tbody').length == 0) {
+      _this6._target.append("<tbody></thead>");
+    }
+
+    return _this6;
+  }
+
+  _createClass(DomTableLogger, [{
+    key: "onLog",
+    value: function onLog(log) {
+      var data = '';
+
+      try {
+        if (typeof log.data == 'string' || typeof log.data == 'number') {
+          data = log.data;
+        } else {
+          data = util.htmlEncodeToString(JSON.stringify(log.data, this.replacer, this.space));
+        }
+      } catch (e) {
+        data = 'error serializing data';
+      }
+
+      if (this._target && this._target.length) {
+        this._target.find('tbody').append("\n\t\t\t\t<tr>\n\t\t\t\t\t<td>".concat(log.date.toLocaleString(), "</td>\n\t\t\t\t\t<td>").concat(log.type, "</td>\n\t\t\t\t\t<td>").concat(data, "</td>\n\t\t\t\t</tr>\n\t\t\t"));
+      }
+    }
+  }]);
+
+  return DomTableLogger;
+}(DomLogger);
+
+exports.DomTableLogger = DomTableLogger;
 
 },{"./jquery.js":3,"./util.js":6}],5:[function(require,module,exports){
 "use strict";
@@ -3637,7 +3677,7 @@ var htmlDecodeToString = function htmlDecodeToString(x) {
 exports.htmlDecodeToString = htmlDecodeToString;
 
 var range = function range(from, to) {
-  var result = new Array(to - from);
+  var result = [];
 
   for (var _i4 = from; _i4 < to; _i4++) {
     result.push(_i4);

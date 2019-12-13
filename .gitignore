@@ -63,3 +63,4 @@ typings/
 *.*~
 
 src-compiled/
+sh.exe.*

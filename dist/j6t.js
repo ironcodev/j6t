@@ -499,7 +499,7 @@ function () {
   }, {
     key: "version",
     get: function get() {
-      return '1.1.1';
+      return '1.1.2';
     }
   }]);
 

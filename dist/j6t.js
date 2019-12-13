@@ -560,7 +560,7 @@ function () {
       this.idProvider = reservedIdProvider;
     }
 
-    if (validation.isSomeString(this.props.id)) {
+    if (util.isSomeString(this.props.id)) {
       this.logger.debug("props.id = ".concat(this.props.id));
       this.id = this.props.id;
     }

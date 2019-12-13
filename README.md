@@ -517,4 +517,43 @@ j6t distinguishes HTML tags and attributes by default. If xxx is an HTML tag, j6
 
 It is not far to happen though that j6t acts incorrectly. To force something to be rendered as a tag we can prepend its name with an extra $ sign, like $mytag${...} and to force something to be rendered as an attribute we can prepend the name with ^ like ^myattr${...}.
 
+## Iterating Arrays and List
+j6t's Component.parse() method distinguishes arrays in interpolated expressions and preserve them in a local variable. After that we can specify a function in the next expression. Component.parse() automatically iterates over the recent array and passes current item to our function. It is easy to produce HTML lists. Here is an example:
 
+```javascript
+class App extends j6t.Component {
+    render() {
+        return this.parse`
+            <table class="table table-striped">
+                <thead>
+                    <th>Row</th>
+                    <th>Name</th>
+                    <th>Occupation</th>
+                </thead>
+                <tbody ${this.props.data}>
+            !${(x, index) => this.parse`
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${x.Name}</td>
+                    <td>${x.Occupation}</td>
+                </tr>
+            `}
+                </tbody>
+            </table>`
+    }
+}
+
+const app = new App({ data: [
+        { Name: 'John', Occupation: 'Developer' },
+        { Name: 'Mark', Occupation: 'Tester' },
+        { Name: 'David', Occupation: 'Manager' },
+        { Name: 'Simon', Occupation: 'DBA' }
+    ]})
+
+j6t.render(app, '#app')
+```
+
+It doesn't matter where you mention the ${array} in the template literal. Component.parse() reserves the array and doesn't produce anything for this expression. But it is important to specify the function for iterating the array in the exact next expression. Also, we need an exclamation mark before the ${fnIterate} if our content is HTML, since as stated earlier, Component.parse() HTML encodes expressions bu default.
+
+jsfiddle:
+https://jsfiddle.net/omrani/znksgp6v/41/

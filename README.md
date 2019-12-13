@@ -510,6 +510,48 @@ By default when we use tag${...} notation to render tags or create sub-component
 
 Whereas components derive from a base Component class, all tag objects derive from a BaseTag class. Similarly all attribute objects derive from a BaseAttribute class.
 
+## Refreshing components
+Components don't have something like state in React. User is allowed to manipulate any components' props and attributes. However, this doesn't update that component's view. In order to update or re-render a component, we need to call its refresh() method manually. Here is an example:
+
+```javascript
+class Grid extends j6t.Component {
+	render() {
+		const { data } = this.props;
+
+		return this.parse`
+			<table class="table table-striped" ${data}>
+				!${x => this.parse`
+					<tr>
+						<td>${x.name}</td>
+						<td>${x.job}</td>
+					</tr>
+				`}
+			</table>`
+	}
+}
+class App extends j6t.Component {
+	btnLoadClicked() {
+		const grid = this.children[1];
+		
+		grid.props.data = [
+			{ name: 'John', job: 'Developer' },
+			{ name: 'David', job: 'Manager' },
+			{ name: 'Mark', job: 'Tester' },
+			{ name: 'Simon', job: 'DBA' },
+		];
+		
+		grid.refresh()
+	}
+	render() {
+		const data = [];
+
+		return this.parse`
+			<button id${0} onclick${() => this.btnLoadClicked()}>Load Grid</button>
+			Grid${{ data: data }}`
+	}
+}
+```
+
 ### Forcing tags and attributes
 When Component.parse() method sees xxx${...} in the string content, it uses a specific prioritarization on how to render xxx${...}. the details of this process is a little lengthy and could be out of the reader's interest. But here is the short explanation.
 

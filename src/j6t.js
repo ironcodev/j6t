@@ -335,7 +335,7 @@ class j6tNestedIdProvider extends j6tIdProvider {
 
 class j6tRoot {
 	get version() {
-		return '1.1.2'
+		return '1.1.3'
 	}
 	render(component, target) {
 		if (component instanceof(Component) && _jQuery(target).length == 1) {
@@ -666,7 +666,7 @@ class Component {
 			
 			function _render(x) {
 				if (util.isSomeObject(x)) {
-					if (!(x instanceof(BaseAttribute))) {
+					if (!(x instanceof(BaseAttribute) || x instanceof(bindElement))) {
 						me.children.push(x);
 					}
 					
@@ -951,7 +951,7 @@ class Component {
 				firstCh = literalAfterWhitespace ? literalAfterWhitespace[0]: '';
 				lastCh = literalAfterWhitespace ? literalAfterWhitespace[literalAfterWhitespace.length - 1]: '';
 				
-				if (['#', '^', '$', '*'].indexOf(firstCh) < 0) {
+				if (['#', '^', '$'].indexOf(firstCh) < 0) {
 														/* currently we only support #, ^ and $, but in the future we may
 															extend j6tRoot and support other charcaters to start a name command.
 														   
@@ -1086,7 +1086,7 @@ class Component {
 							let execResult;
 							
 							try {
-								execResult = exec(command, value);
+								execResult = this.exec(command, value);
 							} catch (e) {
 								me.logger.fail(`exec() failed for command ${command}.`);
 								me.logger.danger(e);
@@ -1204,21 +1204,13 @@ class Component {
 	bindEvents() {
 		const me = this;
 		
-		me.logger.info(`bindEvents()`);
-		me.logger.secondary(`children count = ${this.children.length}`);
-		
 		this.children.forEach((child, i) => {
 			if (util.isFunction(child.bindEvents)) {
 				child.bindEvents();
 			}
 		});
 		
-		me.logger.secondary(`binding current component's events. count = ${this.events.length}`);
-		
 		this.events.forEach((e, i) => {
-			me.logger.secondary(`binding event ${i} ...`);
-			me.logger.debug(e);
-			
 			if (_jQuery(e.target).length) {
 				_jQuery(e.target).bind(e.name, e.handler);
 			} else {

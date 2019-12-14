@@ -209,7 +209,7 @@ const reverse = x => apply(x, (o, key, value) => {
 	return result;
 });
 
-const reverseToString = x => x => join(reverse(x), '', '');
+const reverseToString = x => join(reverse(x), '', '');
 
 const capitalize = x => apply(x, (o, key, value) => {
 	let result;

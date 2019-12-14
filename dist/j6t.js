@@ -499,7 +499,7 @@ function () {
   }, {
     key: "version",
     get: function get() {
-      return '1.1.2';
+      return '1.1.3';
     }
   }]);
 
@@ -829,7 +829,7 @@ function () {
 
         function _render(x) {
           if (util.isSomeObject(x)) {
-            if (!(x instanceof BaseAttribute)) {
+            if (!(x instanceof BaseAttribute || x instanceof bindElement)) {
               me.children.push(x);
             }
 
@@ -1115,7 +1115,7 @@ function () {
           firstCh = literalAfterWhitespace ? literalAfterWhitespace[0] : '';
           lastCh = literalAfterWhitespace ? literalAfterWhitespace[literalAfterWhitespace.length - 1] : '';
 
-          if (['#', '^', '$', '*'].indexOf(firstCh) < 0) {
+          if (['#', '^', '$'].indexOf(firstCh) < 0) {
             /* currently we only support #, ^ and $, but in the future we may
             	extend j6tRoot and support other charcaters to start a name command.
                
@@ -1260,7 +1260,7 @@ function () {
                 var execResult = void 0;
 
                 try {
-                  execResult = exec(command, value);
+                  execResult = this.exec(command, value);
                 } catch (e) {
                   me.logger.fail("exec() failed for command ".concat(command, "."));
                   me.logger.danger(e);
@@ -1378,18 +1378,12 @@ function () {
     key: "bindEvents",
     value: function bindEvents() {
       var me = this;
-      me.logger.info("bindEvents()");
-      me.logger.secondary("children count = ".concat(this.children.length));
       this.children.forEach(function (child, i) {
         if (util.isFunction(child.bindEvents)) {
           child.bindEvents();
         }
       });
-      me.logger.secondary("binding current component's events. count = ".concat(this.events.length));
       this.events.forEach(function (e, i) {
-        me.logger.secondary("binding event ".concat(i, " ..."));
-        me.logger.debug(e);
-
         if ((0, _jquery["default"])(e.target).length) {
           (0, _jquery["default"])(e.target).bind(e.name, e.handler);
         } else {
@@ -3445,9 +3439,7 @@ var reverse = function reverse(x) {
 exports.reverse = reverse;
 
 var reverseToString = function reverseToString(x) {
-  return function (x) {
-    return join(reverse(x), '', '');
-  };
+  return join(reverse(x), '', '');
 };
 
 exports.reverseToString = reverseToString;

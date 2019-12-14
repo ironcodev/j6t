@@ -335,7 +335,7 @@ class j6tNestedIdProvider extends j6tIdProvider {
 
 class j6tRoot {
 	get version() {
-		return '1.1.3'
+		return '1.1.4'
 	}
 	render(component, target) {
 		if (component instanceof(Component) && _jQuery(target).length == 1) {
@@ -471,6 +471,7 @@ class Component {
 									}
 								*/
 		this.resources = [];
+		this.parseLevel = 0;
     }
 	generateId(id) {
 		return this.idProvider.generate(id);
@@ -622,6 +623,9 @@ class Component {
 	}
 	parse(literals, ...expressions) {
 		const me = this;
+		
+		me.parseLevel++;
+		
 		let result = [];
 		let arr;
 		
@@ -1127,12 +1131,14 @@ class Component {
 			}
 		}
 		
-		if (!me.hasWrapper) {
+		if (!me.hasWrapper && me.parseLevel == 1) {
 			me.logger.warn(`component ${this.constructor.name} has no wrapper. default wrapper was added.`);
 			
 			result.splice(0, 0, `<div id="${me.id}">`);
 			result.push(`</div>`);
 		}
+		
+		me.parseLevel--;
 		
 		return result.join('');
 	}

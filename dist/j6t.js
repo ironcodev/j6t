@@ -499,7 +499,7 @@ function () {
   }, {
     key: "version",
     get: function get() {
-      return '1.1.3';
+      return '1.1.4';
     }
   }]);
 
@@ -605,6 +605,7 @@ function () {
     */
 
     this.resources = [];
+    this.parseLevel = 0;
   }
 
   _createClass(Component, [{
@@ -788,6 +789,7 @@ function () {
       }
 
       var me = this;
+      me.parseLevel++;
       var result = [];
       var arr;
       me.logger.info("parse()");
@@ -1299,12 +1301,13 @@ function () {
         }
       }
 
-      if (!me.hasWrapper) {
+      if (!me.hasWrapper && me.parseLevel == 1) {
         me.logger.warn("component ".concat(this.constructor.name, " has no wrapper. default wrapper was added."));
         result.splice(0, 0, "<div id=\"".concat(me.id, "\">"));
         result.push("</div>");
       }
 
+      me.parseLevel--;
       return result.join('');
     }
   }, {

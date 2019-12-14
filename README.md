@@ -531,7 +531,7 @@ class Grid extends j6t.Component {
 }
 class App extends j6t.Component {
 	btnLoadClicked() {
-		const grid = this.children[1];
+		const grid = this.children[0];
 		
 		grid.props.data = [
 			{ name: 'John', job: 'Developer' },

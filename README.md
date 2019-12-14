@@ -559,7 +559,7 @@ j6t distinguishes HTML tags and attributes by default. If xxx is an HTML tag, j6
 
 It is not far to happen though that j6t acts incorrectly. To force something to be rendered as a tag we can prepend its name with an extra $ sign, like $mytag${...} and to force something to be rendered as an attribute we can prepend the name with ^ like ^myattr${...}.
 
-## Iterating Arrays and List
+## Iterating Arrays
 j6t's Component.parse() method distinguishes arrays in interpolated expressions and preserve them in a local variable. After that we can specify a function in the next expression. Component.parse() automatically iterates over the recent array and passes current item to our function. It is easy to produce HTML lists. Here is an example:
 
 ```javascript
@@ -599,3 +599,89 @@ It doesn't matter where you mention the ${array} in the template literal. Compon
 
 jsfiddle:
 https://jsfiddle.net/omrani/znksgp6v/41/
+
+## Commands
+j6t provides a mechanism for components to support user-defined command execution. The syntaxt is to use an asterisk or star character before the tag or name that is attached to the $ sign before an interpolated expression. Here is an example:
+
+```javascript
+class App extends j6t.Component {
+    ...
+    render() {
+        const name = 'mark Twain'
+        
+        return this.parse`
+            <b>lower(name)</b>:      *lower${name}      <br/> <!--result: mark twain -->
+	    <b>upper(name)</b>:      *upper${name}      <br/> <!--result: MARK TWAIN -->
+	    <b>reverse(name)</b>:    *reverse${name}    <br/> <!--result: niawt kram -->
+	    <b>capitalize(name)</b>: *capitalize${name} <br/> <!--result: Mark Twain -->
+            `
+    }
+}
+```
+Each component has an exec() method that is provided for command execution.
+```
+exec(command, value) {
+   ...
+}
+```
+
+Here 'command' is the tag or name before $ sign. 'value' is the interpolated expression passed to the ${...}.
+
+j6t internally supports various commands that is listed below:
+
+| command | description | example | result |
+|---------|-------------|---------|--------|
+|lower	|toLowerCase()|*lower${name}	|mark twain|
+|upper	|toUpperCase()|*upper${name}	|MARK TWAIN|
+|capitalize|capitalize	|*capitalize${name}	|Mark Twain|
+|urlencode|url encode	|*urlencode${name}	|mark%20Twain|
+|urldecode|url decode	|*urldecode${'mark%20twain'}	|mark twain|
+|htmldecode|html decode	|*htmldecode${'<b>mark</>'}	|mark|
+|reverse| reverse string	|*reverse${name}	|niawT kram|
+|trim	|trim string|*trim${" mark twain "}	|"mark twain"|
+|b	|decimal to binary|*b${20}	|10100|
+|x	|decimal to hex|*x${20}	|14|
+|o	|decimal to octal|*o${20}	|24|
+|bd	|binary to decimal|*bd${1101}	|13|
+|bx	|binary to hex|*bx${1101}	|d|
+|bo	|binary to octal|*bo${1101}	|15|
+|od	|octal to decimal|*od${24}	|20|
+|ox	|octal to hex|*ox${24}	|14|
+|ob	|octal to binary|*ob${24}	|10100|
+|xd	|hex to decimal|*xd${14}	|20|
+|xo	|hex to octal|*xo${14}	|24|
+|xb	|hex to binary|*xb${14}	|10100|
+
+It is possible though to extend the internal commands or even revoke them completely. In order to do this, we need to override exec() method. If we want to extend internal commands, we should check given command first. If it is among those we want to extend or support, we should prepare the result, otherwise we should call super.exec(command, value). Here is an exmplae:
+
+```javascript
+class App extends j6t.Component {
+   exec(command, value) {
+      switch (command) {
+         case 'json': return JSON.stringify(value);
+         default:
+            return super.exec(command, value);
+      }
+   }
+}
+```
+
+## Dynamic Tag/Class/Component Invocation
+In addition to the normal way of instantiating from tags/classes/sub-components using xxx${...} syntax, j6t provides a flexible and dynamic method of instantiation by which we can instantiate from a tag/class/component whose name is stored in a variable. The syntax is as follows:
+
+@${xxx}${value}
+
+Here is an example:
+
+```javascript
+class App extends j6t.Component {
+   render() {
+      const tag = 'button'
+      
+      return this.parse`
+      	@${tag}${{ text: 'Submit' }}
+      `
+   }
+}
+```
+It is important to stick the interpolated expressions together and there shouldn't be anything even a single space between them.

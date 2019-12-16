@@ -493,13 +493,14 @@ function () {
           }
         });
         (0, _jquery["default"])(target).html(content.join('\n'));
+        component.postRender();
         component.bindEvents();
       }
     }
   }, {
     key: "version",
     get: function get() {
-      return '1.1.4';
+      return '1.2.0';
     }
   }]);
 
@@ -1318,6 +1319,9 @@ function () {
       this.ids = [];
     }
   }, {
+    key: "postRender",
+    value: function postRender() {}
+  }, {
     key: "render",
     value: function render() {
       return '';
@@ -1368,6 +1372,14 @@ function () {
         }
 
         (0, _jquery["default"])('#' + this.id).replaceWith(html);
+
+        try {
+          this.postRender();
+        } catch (e) {
+          me.logger.fail("postRender() failed.");
+          me.logger.danger(e);
+        }
+
         this.bindEvents();
       } else {
         if (count == 0) {

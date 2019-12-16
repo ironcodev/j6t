@@ -335,7 +335,7 @@ class j6tNestedIdProvider extends j6tIdProvider {
 
 class j6tRoot {
 	get version() {
-		return '1.1.4'
+		return '1.2.0'
 	}
 	render(component, target) {
 		if (component instanceof(Component) && _jQuery(target).length == 1) {
@@ -370,6 +370,7 @@ class j6tRoot {
 			
 			_jQuery(target).html(content.join('\n'));
 			
+			component.postRender();
 			component.bindEvents();
 		}
 	}
@@ -1148,6 +1149,8 @@ class Component {
 		this.children = [];
 		this.ids = [];
 	}
+	postRender() {
+	}
 	render() {
 		return '';
 	}
@@ -1197,6 +1200,13 @@ class Component {
 			}
 			
 			_jQuery('#' + this.id).replaceWith(html);
+			
+			try {
+				this.postRender();
+			} catch (e) {
+				me.logger.fail(`postRender() failed.`);
+				me.logger.danger(e);
+			}
 			
 			this.bindEvents();
 		} else {

@@ -1,6 +1,15 @@
 # j6t
 A lightweight template library using es6 tagged template literals based on jQuery.
 
+## Usage
+Just put a &lt;script&gt; tag in your page after the tag you load jQuery library and your good to go and use j6t. You can download and use a local copy of j6t or use jsdelivr CDN like below.
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/ironcodev/j6t/dist/j6t.min.js"></script>
+```
+After that you need to create at least one component and render it using j6t. In below sections I have described various features of j6t.
+
+# User Guide
 ## Basic
 ### base Component class
 j6t resembles React in a sense that there is a base Component class from which you can derive your components.

@@ -1317,6 +1317,7 @@ function () {
       var me = this;
       this.children = [];
       this.ids = [];
+      this.events = [];
     }
   }, {
     key: "postRender",

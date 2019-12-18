@@ -1148,6 +1148,7 @@ class Component {
 		
 		this.children = [];
 		this.ids = [];
+		this.events = [];
 	}
 	postRender() {
 	}

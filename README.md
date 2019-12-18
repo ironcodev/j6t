@@ -74,7 +74,7 @@ j6t.render(app, '#app')
 ```
 
 jsfiddle:
-https://jsfiddle.net/omrani/znksgp6v/4/
+https://jsfiddle.net/omrani/znksgp6v/50/
 
 ### props and constructor
 j6t's components have a props property (similar to React with some restrictions). You can pass your properties to your component's constructor as an object when instantiating from your component. Pay attention that you need to specify an explicit constructor for your component and call super() in it.
@@ -379,7 +379,7 @@ class Button extends j6t.Component {
 ```
 
 jsfiddle:
-https://jsfiddle.net/omrani/znksgp6v/27/
+https://jsfiddle.net/omrani/znksgp6v/52/
 
 Here onclick is assigned to the recent node whose id is specified using id${}. Another example can clarify what elements will be chosen as targets of event.
 
@@ -450,7 +450,7 @@ class App extends j6t.Component {
 }
 ```
 jsfiddle:
-https://jsfiddle.net/omrani/znksgp6v/30/
+https://jsfiddle.net/omrani/znksgp6v/53/
 
 Here the click event is specified for all &lt;li&gt; elements inside &lt;ul&gt;. There is a single function to handle the event. Note that, we didn't know id of &lt;ul&gt; since its automatically generated, but we are still able to refer to it in our css selector to target the &lt;li&gt; elements. Here, the click events is assigned only to the &lt;li&gt; element inside current component's &lt;ul&gt; not any &lt;li&gt; inside any &lt;ul&gt;.
     
@@ -607,7 +607,7 @@ j6t.render(app, '#app')
 It doesn't matter where you mention the ${array} in the template literal. Component.parse() reserves the array and doesn't produce anything for this expression. But it is important to specify the function for iterating the array in the exact next expression. Also, we need an exclamation mark before the ${fnIterate} if our content is HTML, since as stated earlier, Component.parse() HTML encodes expressions bu default.
 
 jsfiddle:
-https://jsfiddle.net/omrani/znksgp6v/41/
+https://jsfiddle.net/omrani/znksgp6v/51/
 
 ## Commands
 j6t provides a mechanism for components to support user-defined command execution. The syntaxt is to use an asterisk or star character before the tag or name that is attached to the $ sign before an interpolated expression. Here is an example:

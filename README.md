@@ -2,6 +2,12 @@
 A lightweight template library using es6 tagged template literals based on jQuery.
 
 ## Usage
+Install via bower
+
+```
+bower install j6t
+```
+
 Just put a &lt;script&gt; tag in your page after the tag you load jQuery library and your good to go and use j6t. You can download and use a local copy of j6t or use jsdelivr CDN like below.
 
 ```html

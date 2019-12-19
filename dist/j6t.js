@@ -225,14 +225,14 @@ var attributes = ['accept', 'accept-charset', 'accesskey', 'action', 'align', 'a
 		id${...}, #${...} rules:
 			id${'#a'}	=> set id for me (me.id)
 			id${'#'}	=> generate id for me	(me.id)	alternate
-			id${0}		=> generate id for last and store at 0		(me.lastId, me.ids[0])
-			id${1}		=> generate id for last and store at 1		(me.lastId, me.ids[1])
+			id${0}		=> generate id for last and store at 0		(me.lastId, me._ids[0])
+			id${1}		=> generate id for last and store at 1		(me.lastId, me._ids[1])
 			id${''}		=> generate id for last and store at last	(me.lastId)
 
 			#${'#'}		=> get my id	(me.id)
 			#${'.'}		=> get my id	(me.id) alternative
-			#${0}		=> get ids[0]	(me.ids[0])
-			#${1}		=> get ids[1]	(me.ids[1])
+			#${0}		=> get _ids[0]	(me._ids[0])
+			#${1}		=> get _ids[1]	(me._ids[1])
 			#${''}		=> get last id	(me.lastId)
 */
 
@@ -480,7 +480,7 @@ function () {
             link.applied = true;
           }
         });
-        component.idProviderState = component.idProvider.getState();
+        component._idProviderState = component.idProvider.getState();
         component.preRender();
         html = component.render();
         content.push(html);
@@ -500,7 +500,7 @@ function () {
   }, {
     key: "version",
     get: function get() {
-      return '1.2.2';
+      return '1.3.0';
     }
   }]);
 
@@ -589,14 +589,14 @@ function () {
     delete __props.container;
     delete __props.idProvider;
     this.logger.debug(__props);
-    this.idProviderState = null;
-    this.ids = [];
+    this._idProviderState = null;
+    this._ids = [];
     this.lastId = ''; // not used anymore
 
-    this.hasWrapper = util.isBool(this.props.hasWrapper) ? this.props.hasWrapper : false;
-    this.lastOwner = null;
-    this.children = [];
-    this.events = [];
+    this._hasWrapper = util.isBool(this.props.hasWrapper) ? this.props.hasWrapper : false;
+    this._lastOwner = null;
+    this._children = [];
+    this._events = [];
     /*	item structure:
     {
     target: '#xyz',			// selector e.g. '.xyz', 'p', ...
@@ -605,8 +605,8 @@ function () {
     }
     */
 
-    this.resources = [];
-    this.parseLevel = 0;
+    this._resources = [];
+    this._parseLevel = 0;
   }
 
   _createClass(Component, [{
@@ -732,7 +732,7 @@ function () {
       function state1(ch, ended) {
         if (arr.indexOf(ch) >= 0) {
           if (util.isNumeric(value)) {
-            result += me.ids[parseInt(value)] + (ended ? '' : ch);
+            result += me._ids[parseInt(value)] + (ended ? '' : ch);
             value = '';
           } else {
             if (value == '#' || value == '') {
@@ -790,7 +790,7 @@ function () {
       }
 
       var me = this;
-      me.parseLevel++;
+      me._parseLevel++;
       var result = [];
       var arr;
       me.logger.info("parse()");
@@ -823,7 +823,7 @@ function () {
             obj = eval(str);
 
             if (!ignoreOwner) {
-              me.lastOwner = obj;
+              me._lastOwner = obj;
             }
           } catch (e) {
             me.logger.fail(e);
@@ -835,13 +835,13 @@ function () {
         function _render(x) {
           if (util.isSomeObject(x)) {
             if (!(x instanceof BaseAttribute || x instanceof bindElement)) {
-              me.children.push(x);
+              me._children.push(x);
             }
 
             if (util.isFunction(x.render)) {
               if (x.idProvider instanceof j6tIdProvider) {
-                x.idProviderState = x.idProvider.getState();
-                me.logger.debug("\t\tx.idProviderState = ".concat(x.idProviderState));
+                x._idProviderState = x.idProvider.getState();
+                me.logger.debug("\t\tx._idProviderState = ".concat(x._idProviderState));
               }
 
               if (util.isFunction(x.preRender)) {
@@ -937,7 +937,7 @@ function () {
                 } else {
                   me.logger.secondary("current component id '".concat(me.id, "' requested."));
                   args.arg = me.id;
-                  me.hasWrapper = true;
+                  me._hasWrapper = true;
                 }
               } else if (args.arg == '.') {
                 me.logger.secondary("current component id '".concat(me.id, "' requested."));
@@ -959,18 +959,18 @@ function () {
           }
 
           if (events.indexOf(args.name) >= 0 || args.directive == '#') {
-            if (me.ids.length) {
+            if (me._ids.length) {
               me.logger.secondary("event ".concat(args.name, " ").concat(args.directive == '#' ? 'was forced' : ' was found', "."));
               obj = new bindElement({
                 event: args.name,
                 container: me,
-                target: "#".concat(me.ids[me.ids.length - 1]),
+                target: "#".concat(me._ids[me._ids.length - 1]),
                 // me.lastId
                 handler: args.arg
               });
               break;
             } else {
-              me.logger.warn("component ids list is empty. cannot create event '".concat(args.name, "'."));
+              me.logger.warn("component _ids list is empty. cannot create event '".concat(args.name, "'."));
             }
           }
 
@@ -1183,19 +1183,19 @@ function () {
                 result.push('#' + me.id);
               }
               /*	we cannot support the following value because #{} might be called before id${}
-              	in this case me.ids[me.ids.length - 1] will refer to an inocrrect id
+              	in this case me._ids[me._ids.length - 1] will refer to an inocrrect id
               else if (typeof value == 'string' && value.trim() == '') {
-              	let _lastId = me.ids[me.ids.length - 1]; // me.lastId;
+              	let _lastId = me._ids[me._ids.length - 1]; // me.lastId;
               	result.push(() => '#' + _lastId);
               }
               */
               else if (util.isNumeric(value)) {
                   (function () {
-                    var _value = value; // 	we need to postpone reading me.ids[value] because ids[] are set by id${}
+                    var _value = value; // 	we need to postpone reading me._ids[value] because _ids[] are set by id${}
                     //	and id${} might be called after #${}
 
                     result.push(function () {
-                      return '#' + (me.ids[_value] || '');
+                      return '#' + (me._ids[_value] || '');
                     });
                   })();
                 } else {
@@ -1304,22 +1304,22 @@ function () {
         }
       }
 
-      if (!me.hasWrapper && me.parseLevel == 1) {
+      if (!me._hasWrapper && me._parseLevel == 1) {
         me.logger.warn("component ".concat(this.constructor.name, " has no wrapper. default wrapper was added."));
         result.splice(0, 0, "<div id=\"".concat(me.id, "\">"));
         result.push("</div>");
       }
 
-      me.parseLevel--;
+      me._parseLevel--;
       return result.join('');
     }
   }, {
     key: "preRender",
     value: function preRender() {
       var me = this;
-      this.children = [];
-      this.ids = [];
-      this.events = [];
+      this._children = [];
+      this._ids = [];
+      this._events = [];
     }
   }, {
     key: "postRender",
@@ -1331,9 +1331,10 @@ function () {
     }
   }, {
     key: "refresh",
-    value: function refresh() {
+    value: function refresh(props) {
       var me = this;
       me.logger.info("refresh()");
+      me.logger.debug(props);
       var count = (0, _jquery["default"])('#' + this.id).length;
 
       if (count == 1) {
@@ -1341,11 +1342,15 @@ function () {
 
         if (isj6tIdProvider) {
           try {
-            this.idProvider.setState(this.idProviderState);
+            this.idProvider.setState(this._idProviderState);
           } catch (e) {
             me.logger.fail("idProvider.setState() failed.");
             me.logger.danger(e);
           }
+        }
+
+        if (util.isSomeObject(props)) {
+          _jquery["default"].extend(this.props, props);
         }
 
         try {
@@ -1396,12 +1401,14 @@ function () {
     key: "bindEvents",
     value: function bindEvents() {
       var me = this;
-      this.children.forEach(function (child, i) {
+
+      this._children.forEach(function (child, i) {
         if (util.isFunction(child.bindEvents)) {
           child.bindEvents();
         }
       });
-      this.events.forEach(function (e, i) {
+
+      this._events.forEach(function (e, i) {
         if ((0, _jquery["default"])(e.target).length) {
           (0, _jquery["default"])(e.target).bind(e.name, e.handler);
         } else {
@@ -1503,11 +1510,11 @@ function (_Component2) {
     }
 
     _this3.selfClose = util.isBool(_this3.props.selfClose) ? _this3.props.selfClose : false; //this.lastId = this.id; we don't support me.lastId any more because it is problematic
-    // instead we add me.id to me.ids
+    // instead we add me.id to me._ids
 
-    _this3.ids.push(me.id);
+    _this3._ids.push(me.id);
 
-    _this3.lastOwner = _assertThisInitialized(_this3);
+    _this3._lastOwner = _assertThisInitialized(_this3);
 
     if (!util.isEmpty(_this3.props.arg)) {
       _this3.props.html = _this3.arg;
@@ -1556,7 +1563,7 @@ function (_Component2) {
     value: function preRender() {
       _get(_getPrototypeOf(BaseTag.prototype), "preRender", this).call(this);
 
-      this.ids.push(this.id);
+      this._ids.push(this.id);
     }
   }, {
     key: "render",
@@ -2026,7 +2033,7 @@ function (_BaseAttribute3) {
       _this13.attributeValue = _this13.container.idProvider.generate(givenId);
 
       if (util.isNumeric(givenId)) {
-        _this13.container.ids[givenId] = _this13.attributeValue;
+        _this13.container._ids[givenId] = _this13.attributeValue;
       }
     }
 
@@ -2188,13 +2195,13 @@ function (_BaseElement2) {
 
       this.logger.debug("event: '".concat(this.event, "', target: '").concat(this.target, "', container: '").concat(util.isSomeObject(this.container) ? 'ok' : 'error', "'"));
 
-      if (validation.isValidEvent(this.event) && util.isSomeString(this.target) && util.isFunction(this.handler) && util.isSomeObject(this.container) && util.isArray(this.container.events)) {
-        var e = this.container.events.find(function (e) {
+      if (validation.isValidEvent(this.event) && util.isSomeString(this.target) && util.isFunction(this.handler) && util.isSomeObject(this.container) && util.isArray(this.container._events)) {
+        var e = this.container._events.find(function (e) {
           return e.name == _this18.event && e.target == _this18.target && e.handler == _this18.handler;
         });
 
         if (e == undefined) {
-          this.container.events.push({
+          this.container._events.push({
             target: this.container.parseCssSelector(this.target),
             name: this.event,
             handler: this.handler

@@ -136,14 +136,14 @@ const attributes = [
 		id${...}, #${...} rules:
 			id${'#a'}	=> set id for me (me.id)
 			id${'#'}	=> generate id for me	(me.id)	alternate
-			id${0}		=> generate id for last and store at 0		(me.lastId, me.ids[0])
-			id${1}		=> generate id for last and store at 1		(me.lastId, me.ids[1])
+			id${0}		=> generate id for last and store at 0		(me.lastId, me._ids[0])
+			id${1}		=> generate id for last and store at 1		(me.lastId, me._ids[1])
 			id${''}		=> generate id for last and store at last	(me.lastId)
 
 			#${'#'}		=> get my id	(me.id)
 			#${'.'}		=> get my id	(me.id) alternative
-			#${0}		=> get ids[0]	(me.ids[0])
-			#${1}		=> get ids[1]	(me.ids[1])
+			#${0}		=> get _ids[0]	(me._ids[0])
+			#${1}		=> get _ids[1]	(me._ids[1])
 			#${''}		=> get last id	(me.lastId)
 */
 
@@ -335,7 +335,7 @@ class j6tNestedIdProvider extends j6tIdProvider {
 
 class j6tRoot {
 	get version() {
-		return '1.2.2'
+		return '1.3.0'
 	}
 	render(component, target) {
 		if (component instanceof(Component) && _jQuery(target).length == 1) {
@@ -351,7 +351,7 @@ class j6tRoot {
 				}
 			});
 			
-			component.idProviderState = component.idProvider.getState();
+			component._idProviderState = component.idProvider.getState();
 			
 			component.preRender();
 			
@@ -458,21 +458,21 @@ class Component {
 		
 		this.logger.debug(__props);
 		
-		this.idProviderState = null;
-		this.ids = [];
+		this._idProviderState = null;
+		this._ids = [];
 		this.lastId = '';	// not used anymore
-		this.hasWrapper = util.isBool(this.props.hasWrapper) ? this.props.hasWrapper: false;
-		this.lastOwner = null;
-		this.children = [];
-		this.events = [];		/*	item structure:
+		this._hasWrapper = util.isBool(this.props.hasWrapper) ? this.props.hasWrapper: false;
+		this._lastOwner = null;
+		this._children = [];
+		this._events = [];		/*	item structure:
 									{
 										target: '#xyz',			// selector e.g. '.xyz', 'p', ...
 										name: 'click', 			// dbclick, keydown, ...
 										handler: function
 									}
 								*/
-		this.resources = [];
-		this.parseLevel = 0;
+		this._resources = [];
+		this._parseLevel = 0;
     }
 	generateId(id) {
 		return this.idProvider.generate(id);
@@ -573,7 +573,7 @@ class Component {
 		function state1(ch, ended) {
 			if (arr.indexOf(ch) >= 0) {
 				if (util.isNumeric(value)) {
-					result += me.ids[parseInt(value)] + (ended ? '' : ch);
+					result += me._ids[parseInt(value)] + (ended ? '' : ch);
 					value = '';
 				} else {
 					if (value == '#' || value == '') {
@@ -625,7 +625,7 @@ class Component {
 	parse(literals, ...expressions) {
 		const me = this;
 		
-		me.parseLevel++;
+		me._parseLevel++;
 		
 		let result = [];
 		let arr;
@@ -662,7 +662,7 @@ class Component {
 					obj = eval(str);
 					
 					if (!ignoreOwner) {
-						me.lastOwner = obj;
+						me._lastOwner = obj;
 					}
 				} catch (e) {
 					me.logger.fail(e);
@@ -674,14 +674,14 @@ class Component {
 			function _render(x) {
 				if (util.isSomeObject(x)) {
 					if (!(x instanceof(BaseAttribute) || x instanceof(bindElement))) {
-						me.children.push(x);
+						me._children.push(x);
 					}
 					
 					if (util.isFunction(x.render)) {
 						if (x.idProvider instanceof j6tIdProvider) {
-							x.idProviderState = x.idProvider.getState();
+							x._idProviderState = x.idProvider.getState();
 							
-							me.logger.debug(`		x.idProviderState = ${x.idProviderState}`);
+							me.logger.debug(`		x._idProviderState = ${x._idProviderState}`);
 						}
 						
 						if (util.isFunction(x.preRender)) {
@@ -783,7 +783,7 @@ class Component {
 								me.logger.secondary(`current component id '${me.id}' requested.`);
 								
 								args.arg = me.id;
-								me.hasWrapper = true;
+								me._hasWrapper = true;
 							}
 						} else if (args.arg == '.') {
 							me.logger.secondary(`current component id '${me.id}' requested.`);
@@ -808,19 +808,19 @@ class Component {
 				}
 				
 				if ((events.indexOf(args.name) >= 0 || args.directive == '#')) {
-					if (me.ids.length) {
+					if (me._ids.length) {
 						me.logger.secondary(`event ${args.name} ${(args.directive == '#'?'was forced':' was found')}.`);
 						
 						obj = new bindElement({
 							event: args.name,
 							container: me,
-							target: `#${me.ids[me.ids.length - 1]}`,	// me.lastId
+							target: `#${me._ids[me._ids.length - 1]}`,	// me.lastId
 							handler: args.arg
 						});
 					
 						break;
 					} else {
-						me.logger.warn(`component ids list is empty. cannot create event '${args.name}'.`);
+						me.logger.warn(`component _ids list is empty. cannot create event '${args.name}'.`);
 					}
 				}
 				
@@ -1024,16 +1024,16 @@ class Component {
 							result.push('#' + me.id);
 						}
 						/*	we cannot support the following value because #{} might be called before id${}
-							in this case me.ids[me.ids.length - 1] will refer to an inocrrect id
+							in this case me._ids[me._ids.length - 1] will refer to an inocrrect id
 						else if (typeof value == 'string' && value.trim() == '') {
-							let _lastId = me.ids[me.ids.length - 1]; // me.lastId;
+							let _lastId = me._ids[me._ids.length - 1]; // me.lastId;
 							result.push(() => '#' + _lastId);
 						}
 						*/
 						else if (util.isNumeric(value)) {
-							let _value = value;				// 	we need to postpone reading me.ids[value] because ids[] are set by id${}
+							let _value = value;				// 	we need to postpone reading me._ids[value] because _ids[] are set by id${}
 															//	and id${} might be called after #${}
-							result.push(() => '#' + (me.ids[_value] || ''));
+							result.push(() => '#' + (me._ids[_value] || ''));
 						} else {
 							result.push('#' + util.htmlEncodeToString(value));
 						}
@@ -1134,33 +1134,34 @@ class Component {
 			}
 		}
 		
-		if (!me.hasWrapper && me.parseLevel == 1) {
+		if (!me._hasWrapper && me._parseLevel == 1) {
 			me.logger.warn(`component ${this.constructor.name} has no wrapper. default wrapper was added.`);
 			
 			result.splice(0, 0, `<div id="${me.id}">`);
 			result.push(`</div>`);
 		}
 		
-		me.parseLevel--;
+		me._parseLevel--;
 		
 		return result.join('');
 	}
 	preRender() {
 		const me = this;
 		
-		this.children = [];
-		this.ids = [];
-		this.events = [];
+		this._children = [];
+		this._ids = [];
+		this._events = [];
 	}
 	postRender() {
 	}
 	render() {
 		return '';
 	}
-	refresh() {
+	refresh(props) {
 		const me = this;
 		
 		me.logger.info(`refresh()`);
+		me.logger.debug(props);
 		
 		const count = _jQuery('#' + this.id).length;
 		
@@ -1169,11 +1170,15 @@ class Component {
 			
 			if (isj6tIdProvider) {
 				try {
-					this.idProvider.setState(this.idProviderState);
+					this.idProvider.setState(this._idProviderState);
 				} catch (e) {
 					me.logger.fail(`idProvider.setState() failed.`);
 					me.logger.danger(e);
 				}
+			}
+			
+			if (util.isSomeObject(props)) {
+				_jQuery.extend(this.props, props);
 			}
 			
 			try {
@@ -1223,13 +1228,13 @@ class Component {
 	bindEvents() {
 		const me = this;
 		
-		this.children.forEach((child, i) => {
+		this._children.forEach((child, i) => {
 			if (util.isFunction(child.bindEvents)) {
 				child.bindEvents();
 			}
 		});
 		
-		this.events.forEach((e, i) => {
+		this._events.forEach((e, i) => {
 			if (_jQuery(e.target).length) {
 				_jQuery(e.target).bind(e.name, e.handler);
 			} else {
@@ -1293,9 +1298,9 @@ class BaseTag extends Component {
 		this.selfClose = util.isBool(this.props.selfClose) ? this.props.selfClose: false;
 		
 		//this.lastId = this.id; we don't support me.lastId any more because it is problematic
-		// instead we add me.id to me.ids
-		this.ids.push(me.id);
-		this.lastOwner = this;
+		// instead we add me.id to me._ids
+		this._ids.push(me.id);
+		this._lastOwner = this;
 		
 		if (!util.isEmpty(this.props.arg)) {
 			this.props.html = this.arg
@@ -1333,7 +1338,7 @@ class BaseTag extends Component {
 	preRender() {
 		super.preRender();
 		
-		this.ids.push(this.id);
+		this._ids.push(this.id);
 	}
 	render() {
 		let me = this;
@@ -1590,7 +1595,7 @@ class idAttribute extends BaseAttribute {
 			this.attributeValue = this.container.idProvider.generate(givenId);
 			
 			if (util.isNumeric(givenId)) {
-				this.container.ids[givenId] = this.attributeValue;
+				this.container._ids[givenId] = this.attributeValue;
 			}
 		}
 	}
@@ -1704,14 +1709,14 @@ class bindElement extends BaseElement {
 			&& util.isSomeString(this.target)
 			&& util.isFunction(this.handler)
 			&& util.isSomeObject(this.container)
-			&& util.isArray(this.container.events)) {
+			&& util.isArray(this.container._events)) {
 				
-			let e = this.container.events.find(e => e.name == this.event
+			let e = this.container._events.find(e => e.name == this.event
 													&& e.target == this.target
 													&& e.handler == this.handler);
 			
 			if (e == undefined) {
-				this.container.events.push({
+				this.container._events.push({
 					target: this.container.parseCssSelector(this.target),
 					name: this.event,
 					handler: this.handler

@@ -335,7 +335,7 @@ class j6tNestedIdProvider extends j6tIdProvider {
 
 class j6tRoot {
 	get version() {
-		return '1.2.1'
+		return '1.2.2'
 	}
 	render(component, target) {
 		if (component instanceof(Component) && _jQuery(target).length == 1) {
@@ -664,7 +664,9 @@ class Component {
 					if (!ignoreOwner) {
 						me.lastOwner = obj;
 					}
-				} catch (e) { }
+				} catch (e) {
+					me.logger.fail(e);
+				}
 				
 				return obj;
 			}
@@ -1534,28 +1536,28 @@ class selectedAttribute extends BooleanAttribute {
 	}
 }
 class checkedAttribute extends BooleanAttribute {
-	constructor() {
+	constructor(props) {
 		super(props);
 		
 		this.attributeName = 'checked';
 	}
 }
 class disabledAttribute extends BooleanAttribute {
-	constructor() {
+	constructor(props) {
 		super(props);
 		
 		this.attributeName = 'disabled';
 	}
 }
 class asyncAttribute extends BooleanAttribute {
-	constructor() {
+	constructor(props) {
 		super(props);
 		
 		this.attributeName = 'async';
 	}
 }
 class deferAttribute extends BooleanAttribute {
-	constructor() {
+	constructor(props) {
 		super(props);
 		
 		this.attributeName = 'defer';

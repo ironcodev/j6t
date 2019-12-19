@@ -500,7 +500,7 @@ function () {
   }, {
     key: "version",
     get: function get() {
-      return '1.2.1';
+      return '1.2.2';
     }
   }]);
 
@@ -825,7 +825,9 @@ function () {
             if (!ignoreOwner) {
               me.lastOwner = obj;
             }
-          } catch (e) {}
+          } catch (e) {
+            me.logger.fail(e);
+          }
 
           return obj;
         }
@@ -1902,7 +1904,7 @@ var checkedAttribute =
 function (_BooleanAttribute2) {
   _inherits(checkedAttribute, _BooleanAttribute2);
 
-  function checkedAttribute() {
+  function checkedAttribute(props) {
     var _this8;
 
     _classCallCheck(this, checkedAttribute);
@@ -1922,7 +1924,7 @@ var disabledAttribute =
 function (_BooleanAttribute3) {
   _inherits(disabledAttribute, _BooleanAttribute3);
 
-  function disabledAttribute() {
+  function disabledAttribute(props) {
     var _this9;
 
     _classCallCheck(this, disabledAttribute);
@@ -1942,7 +1944,7 @@ var asyncAttribute =
 function (_BooleanAttribute4) {
   _inherits(asyncAttribute, _BooleanAttribute4);
 
-  function asyncAttribute() {
+  function asyncAttribute(props) {
     var _this10;
 
     _classCallCheck(this, asyncAttribute);
@@ -1962,7 +1964,7 @@ var deferAttribute =
 function (_BooleanAttribute5) {
   _inherits(deferAttribute, _BooleanAttribute5);
 
-  function deferAttribute() {
+  function deferAttribute(props) {
     var _this11;
 
     _classCallCheck(this, deferAttribute);

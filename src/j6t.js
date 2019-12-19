@@ -335,7 +335,7 @@ class j6tNestedIdProvider extends j6tIdProvider {
 
 class j6tRoot {
 	get version() {
-		return '1.3.0'
+		return '1.3.1'
 	}
 	render(component, target) {
 		if (component instanceof(Component) && _jQuery(target).length == 1) {
@@ -474,6 +474,9 @@ class Component {
 		this._resources = [];
 		this._parseLevel = 0;
     }
+	get children() {
+		return this._children;
+	}
 	generateId(id) {
 		return this.idProvider.generate(id);
 	}

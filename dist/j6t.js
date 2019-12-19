@@ -500,7 +500,7 @@ function () {
   }, {
     key: "version",
     get: function get() {
-      return '1.3.0';
+      return '1.3.1';
     }
   }]);
 
@@ -1415,6 +1415,11 @@ function () {
           me.logger.warn("event target '".concat(e.target, "' does not exist in the DOM. event binding skipped."));
         }
       });
+    }
+  }, {
+    key: "children",
+    get: function get() {
+      return this._children;
     }
   }]);
 

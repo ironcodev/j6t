@@ -1,3 +1,3 @@
-let _jQuery = window && window.jQuery;
+import _jQuery from 'jquery';
 
 export default _jQuery;

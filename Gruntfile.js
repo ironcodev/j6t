@@ -22,6 +22,11 @@ module.exports = function(grunt) {
 			dist: {
 				files: {
 					'dist/j6t.js': ['src-compiled/index.js']
+				},
+				options: {
+					external: [
+					  'jquery'
+					]
 				}
 			}		
 		},

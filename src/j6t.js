@@ -1237,7 +1237,9 @@ class Component {
 			}
 		});
 		
-		this._events.forEach((e, i) => {
+		for (let i = 0; i < this._events.length; i++) {
+			let e = this._events[i];
+			
 			if (_jQuery(e.target).length) {
 				if (typeof e.rebind == 'undefined') {
 					_jQuery(e.target).bind(e.name, e.handler);
@@ -1251,7 +1253,7 @@ class Component {
 			} else {
 				me.logger.warn(`event target '${e.target}' does not exist in the DOM. event binding skipped.`);
 			}
-		});
+		}
 	}
 }
 

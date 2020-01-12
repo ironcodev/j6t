@@ -1408,7 +1408,9 @@ function () {
         }
       });
 
-      this._events.forEach(function (e, i) {
+      for (var i = 0; i < this._events.length; i++) {
+        var e = this._events[i];
+
         if ((0, _jquery["default"])(e.target).length) {
           if (typeof e.rebind == 'undefined') {
             (0, _jquery["default"])(e.target).bind(e.name, e.handler);
@@ -1421,7 +1423,7 @@ function () {
         } else {
           me.logger.warn("event target '".concat(e.target, "' does not exist in the DOM. event binding skipped."));
         }
-      });
+      }
     }
   }, {
     key: "children",

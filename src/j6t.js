@@ -335,7 +335,7 @@ class j6tNestedIdProvider extends j6tIdProvider {
 
 class j6tRoot {
 	get version() {
-		return '1.3.3'
+		return '1.3.4'
 	}
 	render(component, target) {
 		if (component instanceof(Component) && _jQuery(target).length == 1) {
@@ -1239,7 +1239,15 @@ class Component {
 		
 		this._events.forEach((e, i) => {
 			if (_jQuery(e.target).length) {
-				_jQuery(e.target).bind(e.name, e.handler);
+				if (typeof e.rebind == 'undefined') {
+					_jQuery(e.target).bind(e.name, e.handler);
+				} else {
+					if (!e.bound) {
+						_jQuery(e.target).bind(e.name, e.handler);
+						
+						e.bound = true;
+					}
+				}
 			} else {
 				me.logger.warn(`event target '${e.target}' does not exist in the DOM. event binding skipped.`);
 			}
@@ -1722,7 +1730,8 @@ class bindElement extends BaseElement {
 				this.container._events.push({
 					target: this.container.parseCssSelector(this.target),
 					name: this.event,
-					handler: this.handler
+					handler: this.handler,
+					rebind: (this.rebind || false)
 				});
 			} else {
 				this.logger.error(`the same event and handler already bound for the same element`);

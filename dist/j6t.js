@@ -500,7 +500,7 @@ function () {
   }, {
     key: "version",
     get: function get() {
-      return '1.3.3';
+      return '1.3.4';
     }
   }]);
 
@@ -1410,7 +1410,14 @@ function () {
 
       this._events.forEach(function (e, i) {
         if ((0, _jquery["default"])(e.target).length) {
-          (0, _jquery["default"])(e.target).bind(e.name, e.handler);
+          if (typeof e.rebind == 'undefined') {
+            (0, _jquery["default"])(e.target).bind(e.name, e.handler);
+          } else {
+            if (!e.bound) {
+              (0, _jquery["default"])(e.target).bind(e.name, e.handler);
+              e.bound = true;
+            }
+          }
         } else {
           me.logger.warn("event target '".concat(e.target, "' does not exist in the DOM. event binding skipped."));
         }
@@ -2209,7 +2216,8 @@ function (_BaseElement2) {
           this.container._events.push({
             target: this.container.parseCssSelector(this.target),
             name: this.event,
-            handler: this.handler
+            handler: this.handler,
+            rebind: this.rebind || false
           });
         } else {
           this.logger.error("the same event and handler already bound for the same element");

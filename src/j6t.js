@@ -1731,7 +1731,7 @@ class bindElement extends BaseElement {
 					target: this.container.parseCssSelector(this.target),
 					name: this.event,
 					handler: this.handler,
-					rebind: (this.rebind || false)
+					rebind: this.rebind
 				});
 			} else {
 				this.logger.error(`the same event and handler already bound for the same element`);

@@ -596,6 +596,9 @@ function () {
     this._hasWrapper = util.isBool(this.props.hasWrapper) ? this.props.hasWrapper : false;
     this._lastOwner = null;
     this._children = [];
+    this.__events = []; // copy of _events which is not reset when refreshing, so that
+    // the component is able to restore some event properties such as 'bound'
+
     this._events = [];
     /*	item structure:
     {
@@ -1400,6 +1403,8 @@ function () {
   }, {
     key: "bindEvents",
     value: function bindEvents() {
+      var _this3 = this;
+
       var me = this;
 
       this._children.forEach(function (child, i) {
@@ -1408,21 +1413,34 @@ function () {
         }
       });
 
-      for (var i = 0; i < this._events.length; i++) {
-        var e = this._events[i];
+      var _loop = function _loop(i) {
+        var e = _this3._events[i];
 
         if ((0, _jquery["default"])(e.target).length) {
           if (typeof e.rebind == 'undefined') {
             (0, _jquery["default"])(e.target).bind(e.name, e.handler);
           } else {
-            if (!e.bound) {
+            var index = _this3.__events.findIndex(function (evt) {
+              return evt.name == e.name && evt.target == e.target && evt._handler == e.handler.toString();
+            });
+
+            if (index >= 0) {
+              if (!_this3.__events[index].bound) {
+                (0, _jquery["default"])(e.target).bind(e.name, e.handler);
+                _this3.__events[index].bound = true;
+              }
+            } else {
+              me.logger.warn("event '".concat(e.name, "' for ").concat(e.target, " was not found in __events!"));
               (0, _jquery["default"])(e.target).bind(e.name, e.handler);
-              e.bound = true;
             }
           }
         } else {
           me.logger.warn("event target '".concat(e.target, "' does not exist in the DOM. event binding skipped."));
         }
+      };
+
+      for (var i = 0; i < this._events.length; i++) {
+        _loop(i);
       }
     }
   }, {
@@ -1507,11 +1525,11 @@ function (_Component2) {
   _inherits(BaseTag, _Component2);
 
   function BaseTag(props) {
-    var _this3;
+    var _this4;
 
     _classCallCheck(this, BaseTag);
 
-    _this3 = _possibleConstructorReturn(this, _getPrototypeOf(BaseTag).call(this, props));
+    _this4 = _possibleConstructorReturn(this, _getPrototypeOf(BaseTag).call(this, props));
     /* structure:
     {
     tagName: string,
@@ -1520,25 +1538,25 @@ function (_Component2) {
     */
 
     if (util.isSomeString(props)) {
-      _this3.tagName = props;
+      _this4.tagName = props;
     }
 
-    _this3.selfClose = util.isBool(_this3.props.selfClose) ? _this3.props.selfClose : false; //this.lastId = this.id; we don't support me.lastId any more because it is problematic
+    _this4.selfClose = util.isBool(_this4.props.selfClose) ? _this4.props.selfClose : false; //this.lastId = this.id; we don't support me.lastId any more because it is problematic
     // instead we add me.id to me._ids
 
-    _this3._ids.push(me.id);
+    _this4._ids.push(me.id);
 
-    _this3._lastOwner = _assertThisInitialized(_this3);
+    _this4._lastOwner = _assertThisInitialized(_this4);
 
-    if (!util.isEmpty(_this3.props.arg)) {
-      _this3.props.html = _this3.arg;
+    if (!util.isEmpty(_this4.props.arg)) {
+      _this4.props.html = _this4.arg;
     }
 
-    _this3.logger.secondary("BaseTag.ctor(): tagName = ".concat(_this3.tagName));
+    _this4.logger.secondary("BaseTag.ctor(): tagName = ".concat(_this4.tagName));
 
-    _this3.logger.debug(_this3.props);
+    _this4.logger.debug(_this4.props);
 
-    return _this3;
+    return _this4;
   }
 
   _createClass(BaseTag, [{
@@ -1641,7 +1659,7 @@ function (_BaseTag2) {
   _inherits(linkTag, _BaseTag2);
 
   function linkTag(props) {
-    var _this4;
+    var _this5;
 
     _classCallCheck(this, linkTag);
 
@@ -1654,23 +1672,23 @@ function (_BaseTag2) {
       _props.href = props;
     }
 
-    _this4 = _possibleConstructorReturn(this, _getPrototypeOf(linkTag).call(this, _props)); // make sure href, rel, type in this.props are string
+    _this5 = _possibleConstructorReturn(this, _getPrototypeOf(linkTag).call(this, _props)); // make sure href, rel, type in this.props are string
 
-    _this4.props.href = util.isSomeString(_this4.props.href) ? _this4.props.href : '';
-    _this4.props.rel = util.isSomeString(_this4.props.rel) ? _this4.props.rel : '';
-    _this4.props.type = util.isSomeString(_this4.props.type) ? _this4.props.type : '';
+    _this5.props.href = util.isSomeString(_this5.props.href) ? _this5.props.href : '';
+    _this5.props.rel = util.isSomeString(_this5.props.rel) ? _this5.props.rel : '';
+    _this5.props.type = util.isSomeString(_this5.props.type) ? _this5.props.type : '';
 
-    if (util.left(_this4.props.href, 4).toLowerCase() == '.css') {
-      if (util.isEmpty(_this4.props.rel)) {
-        _this4.props.rel = 'stylesheet';
+    if (util.left(_this5.props.href, 4).toLowerCase() == '.css') {
+      if (util.isEmpty(_this5.props.rel)) {
+        _this5.props.rel = 'stylesheet';
       }
 
-      if (util.isEmpty(_this4.props.type)) {
-        _this4.props.type = 'text/css';
+      if (util.isEmpty(_this5.props.type)) {
+        _this5.props.type = 'text/css';
       }
     }
 
-    return _this4;
+    return _this5;
   }
 
   return linkTag;
@@ -1735,7 +1753,7 @@ function (_BaseTag3) {
   _inherits(scriptTag, _BaseTag3);
 
   function scriptTag(props) {
-    var _this5;
+    var _this6;
 
     _classCallCheck(this, scriptTag);
 
@@ -1747,22 +1765,22 @@ function (_BaseTag3) {
       _props.src = props;
     }
 
-    _this5 = _possibleConstructorReturn(this, _getPrototypeOf(scriptTag).call(this, _props)); // make sure src, type in this.props are string
+    _this6 = _possibleConstructorReturn(this, _getPrototypeOf(scriptTag).call(this, _props)); // make sure src, type in this.props are string
 
-    _this5.props.src = util.isSomeString(_this5.props.src) ? _this5.props.src : '';
-    _this5.props.type = util.isSomeString(_this5.props.type) ? _this5.props.type : '';
+    _this6.props.src = util.isSomeString(_this6.props.src) ? _this6.props.src : '';
+    _this6.props.type = util.isSomeString(_this6.props.type) ? _this6.props.type : '';
 
-    if (util.left(_this5.props.src, 3).toLowerCase() == '.js') {
-      if (util.isEmpty(_this5.props.type)) {
-        _this5.props.type = 'text/javascript';
+    if (util.left(_this6.props.src, 3).toLowerCase() == '.js') {
+      if (util.isEmpty(_this6.props.type)) {
+        _this6.props.type = 'text/javascript';
       }
-    } else if (util.left(_this5.props.src, 5).toLowerCase() == '.json') {
-      if (util.isEmpty(_this5.props.type)) {
-        _this5.props.type = 'application/json';
+    } else if (util.left(_this6.props.src, 5).toLowerCase() == '.json') {
+      if (util.isEmpty(_this6.props.type)) {
+        _this6.props.type = 'application/json';
       }
     }
 
-    return _this5;
+    return _this6;
   }
 
   return scriptTag;
@@ -1886,13 +1904,13 @@ function (_BaseAttribute) {
   _inherits(BooleanAttribute, _BaseAttribute);
 
   function BooleanAttribute(props) {
-    var _this6;
+    var _this7;
 
     _classCallCheck(this, BooleanAttribute);
 
-    _this6 = _possibleConstructorReturn(this, _getPrototypeOf(BooleanAttribute).call(this, props));
-    _this6.standAlone = true;
-    return _this6;
+    _this7 = _possibleConstructorReturn(this, _getPrototypeOf(BooleanAttribute).call(this, props));
+    _this7.standAlone = true;
+    return _this7;
   }
 
   return BooleanAttribute;
@@ -1906,13 +1924,13 @@ function (_BooleanAttribute) {
   _inherits(selectedAttribute, _BooleanAttribute);
 
   function selectedAttribute(props) {
-    var _this7;
+    var _this8;
 
     _classCallCheck(this, selectedAttribute);
 
-    _this7 = _possibleConstructorReturn(this, _getPrototypeOf(selectedAttribute).call(this, props));
-    _this7.attributeName = 'selected';
-    return _this7;
+    _this8 = _possibleConstructorReturn(this, _getPrototypeOf(selectedAttribute).call(this, props));
+    _this8.attributeName = 'selected';
+    return _this8;
   }
 
   return selectedAttribute;
@@ -1926,13 +1944,13 @@ function (_BooleanAttribute2) {
   _inherits(checkedAttribute, _BooleanAttribute2);
 
   function checkedAttribute(props) {
-    var _this8;
+    var _this9;
 
     _classCallCheck(this, checkedAttribute);
 
-    _this8 = _possibleConstructorReturn(this, _getPrototypeOf(checkedAttribute).call(this, props));
-    _this8.attributeName = 'checked';
-    return _this8;
+    _this9 = _possibleConstructorReturn(this, _getPrototypeOf(checkedAttribute).call(this, props));
+    _this9.attributeName = 'checked';
+    return _this9;
   }
 
   return checkedAttribute;
@@ -1946,13 +1964,13 @@ function (_BooleanAttribute3) {
   _inherits(disabledAttribute, _BooleanAttribute3);
 
   function disabledAttribute(props) {
-    var _this9;
+    var _this10;
 
     _classCallCheck(this, disabledAttribute);
 
-    _this9 = _possibleConstructorReturn(this, _getPrototypeOf(disabledAttribute).call(this, props));
-    _this9.attributeName = 'disabled';
-    return _this9;
+    _this10 = _possibleConstructorReturn(this, _getPrototypeOf(disabledAttribute).call(this, props));
+    _this10.attributeName = 'disabled';
+    return _this10;
   }
 
   return disabledAttribute;
@@ -1966,13 +1984,13 @@ function (_BooleanAttribute4) {
   _inherits(asyncAttribute, _BooleanAttribute4);
 
   function asyncAttribute(props) {
-    var _this10;
+    var _this11;
 
     _classCallCheck(this, asyncAttribute);
 
-    _this10 = _possibleConstructorReturn(this, _getPrototypeOf(asyncAttribute).call(this, props));
-    _this10.attributeName = 'async';
-    return _this10;
+    _this11 = _possibleConstructorReturn(this, _getPrototypeOf(asyncAttribute).call(this, props));
+    _this11.attributeName = 'async';
+    return _this11;
   }
 
   return asyncAttribute;
@@ -1986,13 +2004,13 @@ function (_BooleanAttribute5) {
   _inherits(deferAttribute, _BooleanAttribute5);
 
   function deferAttribute(props) {
-    var _this11;
+    var _this12;
 
     _classCallCheck(this, deferAttribute);
 
-    _this11 = _possibleConstructorReturn(this, _getPrototypeOf(deferAttribute).call(this, props));
-    _this11.attributeName = 'defer';
-    return _this11;
+    _this12 = _possibleConstructorReturn(this, _getPrototypeOf(deferAttribute).call(this, props));
+    _this12.attributeName = 'defer';
+    return _this12;
   }
 
   return deferAttribute;
@@ -2006,18 +2024,18 @@ function (_BaseAttribute2) {
   _inherits(classAttribute, _BaseAttribute2);
 
   function classAttribute(props) {
-    var _this12;
+    var _this13;
 
     _classCallCheck(this, classAttribute);
 
-    _this12 = _possibleConstructorReturn(this, _getPrototypeOf(classAttribute).call(this, props));
+    _this13 = _possibleConstructorReturn(this, _getPrototypeOf(classAttribute).call(this, props));
 
     if (util.isArray(props)) {
-      _this12.attributeValue = props.join(' ');
+      _this13.attributeValue = props.join(' ');
     }
 
-    _this12.attributeName = 'class';
-    return _this12;
+    _this13.attributeName = 'class';
+    return _this13;
   }
 
   return classAttribute;
@@ -2031,27 +2049,27 @@ function (_BaseAttribute3) {
   _inherits(idAttribute, _BaseAttribute3);
 
   function idAttribute(props) {
-    var _this13;
+    var _this14;
 
     _classCallCheck(this, idAttribute);
 
-    _this13 = _possibleConstructorReturn(this, _getPrototypeOf(idAttribute).call(this, props));
-    _this13.attributeName = 'id';
+    _this14 = _possibleConstructorReturn(this, _getPrototypeOf(idAttribute).call(this, props));
+    _this14.attributeName = 'id';
 
-    if (util.isEmpty(_this13.attributeValue)) {
-      _this13.attributeValue = '';
+    if (util.isEmpty(_this14.attributeValue)) {
+      _this14.attributeValue = '';
     }
 
-    if (util.isSomeObject(_this13.container)) {
-      var givenId = _this13.attributeValue;
-      _this13.attributeValue = _this13.container.idProvider.generate(givenId);
+    if (util.isSomeObject(_this14.container)) {
+      var givenId = _this14.attributeValue;
+      _this14.attributeValue = _this14.container.idProvider.generate(givenId);
 
       if (util.isNumeric(givenId)) {
-        _this13.container._ids[givenId] = _this13.attributeValue;
+        _this14.container._ids[givenId] = _this14.attributeValue;
       }
     }
 
-    return _this13;
+    return _this14;
   }
 
   return idAttribute;
@@ -2065,18 +2083,18 @@ function (_BaseAttribute4) {
   _inherits(dirAttribute, _BaseAttribute4);
 
   function dirAttribute(props) {
-    var _this14;
+    var _this15;
 
     _classCallCheck(this, dirAttribute);
 
-    _this14 = _possibleConstructorReturn(this, _getPrototypeOf(dirAttribute).call(this, props));
-    _this14.attributeName = 'dir';
+    _this15 = _possibleConstructorReturn(this, _getPrototypeOf(dirAttribute).call(this, props));
+    _this15.attributeName = 'dir';
 
-    if (['rtl', 'ltr'].indexOf(util.toStr(_this14.attributeValue)) < 0) {
-      _this14.attributeValue = '';
+    if (['rtl', 'ltr'].indexOf(util.toStr(_this15.attributeValue)) < 0) {
+      _this15.attributeValue = '';
     }
 
-    return _this14;
+    return _this15;
   }
 
   return dirAttribute;
@@ -2090,19 +2108,19 @@ function (_BaseAttribute5) {
   _inherits(styleAttribute, _BaseAttribute5);
 
   function styleAttribute(props) {
-    var _this15;
+    var _this16;
 
     _classCallCheck(this, styleAttribute);
 
-    _this15 = _possibleConstructorReturn(this, _getPrototypeOf(styleAttribute).call(this, props));
-    _this15.attributeName = 'style';
-    return _this15;
+    _this16 = _possibleConstructorReturn(this, _getPrototypeOf(styleAttribute).call(this, props));
+    _this16.attributeName = 'style';
+    return _this16;
   }
 
   _createClass(styleAttribute, [{
     key: "populate",
     value: function populate(styles) {
-      var _this16 = this;
+      var _this17 = this;
 
       var result = [];
 
@@ -2112,7 +2130,7 @@ function (_BaseAttribute5) {
             style = style.trim();
             result.push(style[style.length - 1] == ';' ? style.substr(0, style.length - 1) : style);
           } else if (util.isSomeObject(style)) {
-            var _styles = _this16.populate(style);
+            var _styles = _this17.populate(style);
 
             if (util.isSomeString(_styles)) {
               result.push(_styles);
@@ -2179,11 +2197,11 @@ function (_BaseElement2) {
   _inherits(bindElement, _BaseElement2);
 
   function bindElement(props) {
-    var _this17;
+    var _this18;
 
     _classCallCheck(this, bindElement);
 
-    _this17 = _possibleConstructorReturn(this, _getPrototypeOf(bindElement).call(this, props));
+    _this18 = _possibleConstructorReturn(this, _getPrototypeOf(bindElement).call(this, props));
     /* structure:
     {
     event: string,				// click, dbclick, ...
@@ -2193,34 +2211,52 @@ function (_BaseElement2) {
     }
     */
 
-    _this17.event = (util.isSomeString(_this17.event) ? _this17.event : '').toLowerCase();
+    _this18.event = (util.isSomeString(_this18.event) ? _this18.event : '').toLowerCase();
 
-    if (_this17.event.length >= 2 && _this17.event.substr(0, 2) == 'on') {
-      _this17.event = _this17.event.substr(2);
+    if (_this18.event.length >= 2 && _this18.event.substr(0, 2) == 'on') {
+      _this18.event = _this18.event.substr(2);
     }
 
-    return _this17;
+    return _this18;
   }
 
   _createClass(bindElement, [{
     key: "render",
     value: function render() {
-      var _this18 = this;
+      var _this19 = this;
 
       this.logger.debug("event: '".concat(this.event, "', target: '").concat(this.target, "', container: '").concat(util.isSomeObject(this.container) ? 'ok' : 'error', "'"));
 
       if (validation.isValidEvent(this.event) && util.isSomeString(this.target) && util.isFunction(this.handler) && util.isSomeObject(this.container) && util.isArray(this.container._events)) {
-        var e = this.container._events.find(function (e) {
-          return e.name == _this18.event && e.target == _this18.target && e.handler == _this18.handler;
+        var e = this.container._events.find(function (evt) {
+          return evt.name == _this19.event && evt.target == _this19.target && evt._handler == _this19.handler.toString();
         });
 
         if (e == undefined) {
-          this.container._events.push({
+          e = {
             target: this.container.parseCssSelector(this.target),
             name: this.event,
+            _handler: this.handler.toString(),
             handler: this.handler,
-            rebind: this.rebind
+            rebind: this.rebind,
+            bound: false
+          };
+
+          this.container._events.push(e);
+
+          var _e = this.container.__events.find(function (evt) {
+            return evt.name == _this19.event && evt.target == _this19.target && evt._handler == _this19.handler.toString();
           });
+
+          if (_e == undefined) {
+            this.container.__events.push({
+              target: this.target,
+              name: this.event,
+              _handler: this.handler.toString(),
+              rebind: this.rebind,
+              bound: false
+            });
+          }
         } else {
           this.logger.error("the same event and handler already bound for the same element");
         }

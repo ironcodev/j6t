@@ -464,6 +464,8 @@ class Component {
 		this._hasWrapper = util.isBool(this.props.hasWrapper) ? this.props.hasWrapper: false;
 		this._lastOwner = null;
 		this._children = [];
+		this.__events = [];		// copy of _events which is not reset when refreshing, so that
+								// the component is able to restore some event properties such as 'bound'
 		this._events = [];		/*	item structure:
 									{
 										target: '#xyz',			// selector e.g. '.xyz', 'p', ...
@@ -1244,10 +1246,19 @@ class Component {
 				if (typeof e.rebind == 'undefined') {
 					_jQuery(e.target).bind(e.name, e.handler);
 				} else {
-					if (!e.bound) {
-						_jQuery(e.target).bind(e.name, e.handler);
+					const index = this.__events.findIndex(evt => evt.name == e.name
+															&& evt.target == e.target
+															&& evt._handler == e.handler.toString());
+					if (index >= 0) {
+						if (!this.__events[index].bound) {
+							_jQuery(e.target).bind(e.name, e.handler);
+							
+							this.__events[index].bound = true;
+						}
+					} else {
+						me.logger.warn(`event '${e.name}' for ${e.target} was not found in __events!`);
 						
-						e.bound = true;
+						_jQuery(e.target).bind(e.name, e.handler);
 					}
 				}
 			} else {
@@ -1724,17 +1735,34 @@ class bindElement extends BaseElement {
 			&& util.isSomeObject(this.container)
 			&& util.isArray(this.container._events)) {
 				
-			let e = this.container._events.find(e => e.name == this.event
-													&& e.target == this.target
-													&& e.handler == this.handler);
+			let e = this.container._events.find(evt => evt.name == this.event
+													&& evt.target == this.target
+													&& evt._handler == this.handler.toString());
 			
 			if (e == undefined) {
-				this.container._events.push({
+				e = {
 					target: this.container.parseCssSelector(this.target),
 					name: this.event,
+					_handler: this.handler.toString(),
 					handler: this.handler,
-					rebind: this.rebind
-				});
+					rebind: this.rebind,
+					bound: false
+				}
+				
+				this.container._events.push(e);
+				
+				let _e = this.container.__events.find(evt => evt.name == this.event
+														  && evt.target == this.target
+														  && evt._handler == this.handler.toString());
+				if (_e == undefined) {
+					this.container.__events.push({
+						target: this.target,
+						name: this.event,
+						_handler: this.handler.toString(),
+						rebind: this.rebind,
+						bound: false
+					});
+				}
 			} else {
 				this.logger.error(`the same event and handler already bound for the same element`);
 			}

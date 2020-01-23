@@ -1,4 +1,4 @@
-import jQuery from './jquery.js'
+import { _jQuery } from './dependencies.js'
 
 const getEl			= (x) => document && document.querySelector ? document.querySelector(x) : undefined;
 const getEls		= (x) => document && document.querySelectorAll ? document.querySelectorAll(x) : undefined;
@@ -95,12 +95,12 @@ const deepAssign = function (target, ...sources) {	// source: https://stackoverf
 	for (const key in source) {
 		if (isObject(source[key])) {
 			if (!target[key]) {
-				jQuery.extend(target, { [key]: {} });
+				_jQuery.extend(target, { [key]: {} });
 			}
 			
 			deepAssign(target[key], source[key]);
 		} else {
-			jQuery.extend(target, { [key]: source[key] });
+			_jQuery.extend(target, { [key]: source[key] });
 		}
 	}
   }

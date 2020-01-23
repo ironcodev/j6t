@@ -1,4 +1,4 @@
-import _jQuery from './jquery.js'
+import { _jQuery } from './dependencies.js'
 import * as util from './util.js'
 
 const logType = {

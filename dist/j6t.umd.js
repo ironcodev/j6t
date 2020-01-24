@@ -1910,7 +1910,7 @@
     }, {
       key: "version",
       get: function get() {
-        return '1.3.4';
+        return '1.3.5';
       }
     }]);
 

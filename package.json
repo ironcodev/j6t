@@ -1,6 +1,6 @@
 {
   "name": "j6t",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "a jquery template library based on es6 tagged template",
   "main": "dist/j6t.cjs.js",
   "module": "dist/j6t.esm.js",
@@ -38,9 +38,10 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "clean": "rimraf src-compiled",
-    "build": "rimraf dist && rimraf src-compiled && babel src --out-dir src-compiled && browserify src-compiled/index.js -o dist/j6t.js && uglifyjs ./dist/j6t.js -o ./dist/j6t.min.js",
-    "rollup": "rimraf dist && rollup -c"
+    "cleangr": "rimraf src-compiled && rimraf dist/j6t.js dist/j6t.min.js dist/j6t.min.js.map",
+    "cleanrl": "rimraf dist/j6t.umd.js dist/j6t.umd.min.js dist/j6t.cjs.js dist/j6t.esm.js",
+    "build": "npm run cleangr && babel src --out-dir src-compiled && browserify src-compiled/index.js -o dist/j6t.js && uglifyjs ./dist/j6t.js -o ./dist/j6t.min.js",
+    "rollup": "npm run cleanrl && rollup -c"
   },
   "repository": {
     "type": "git",

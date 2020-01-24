@@ -1326,7 +1326,7 @@ class j6tUniversalIdProvider extends j6tIdProvider {
 
 class j6tRoot {
 	get version() {
-		return '1.3.4'
+		return '1.3.5'
 	}
 	render(component, target) {
 		if (component instanceof(Component) && jq(target).length == 1) {
